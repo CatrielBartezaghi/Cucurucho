@@ -1,0 +1,3 @@
+# Use server-side sessions for browser authentication
+
+The browser will authenticate with an opaque session identifier stored in a Secure, HttpOnly, SameSite cookie, while session state and revocation live in PostgreSQL. We deliberately chose this over OAuth2 Bearer access tokens and rotating JWT refresh tokens because the system has one browser client and one user; server-side sessions provide immediate revocation and persistent login with substantially less state and security-sensitive code. JWT or OAuth2 should be reconsidered only if non-browser clients or third-party API consumers become real requirements.

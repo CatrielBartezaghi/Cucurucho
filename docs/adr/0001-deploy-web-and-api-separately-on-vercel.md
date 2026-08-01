@@ -1,0 +1,3 @@
+# Deploy web and API separately on Vercel
+
+The system will live in one monorepo, with the Next.js frontend and FastAPI backend deployed as separate Vercel projects and connected to Neon PostgreSQL 17. The browser will call same-origin `/api/*` paths, which the frontend project transparently proxies to the independently deployed FastAPI project; no business logic lives in that proxy. Application traffic will use Neon's pooled connection and Alembic migrations will use a direct connection. This preserves a real HTTP boundary for learning and independent deployment while keeping repository coordination simple; we deliberately accept the Beta status and serverless constraints of Vercel's Python runtime, while avoiding Neon PostgreSQL 18 until it leaves Preview.
