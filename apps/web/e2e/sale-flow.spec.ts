@@ -39,7 +39,7 @@ test("crea un Producto, confirma, consulta y anula una Venta, y cierra sesión",
   await expect(sale.getByText("Anulada")).toBeVisible();
   await expect.poll(async () => parseArgentineMoney(await total.textContent())).toBe(totalBefore - 1200.5);
   await page.getByRole("button", { name: "Cerrar sesión" }).press("Enter");
-  await expect(page.getByRole("heading", { name: "Registro de ventas" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Cucurucho" })).toBeVisible();
 });
 
 function parseArgentineMoney(value: string | null): number {

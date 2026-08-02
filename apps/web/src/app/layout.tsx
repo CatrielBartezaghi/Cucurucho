@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Heladería — Registro de ventas",
-  description: "Catálogo y registro diario de ventas",
+  title: "Cucurucho — Gestión de heladería",
+  description: "Cucurucho: catálogo y registro diario de ventas",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -13,4 +13,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-

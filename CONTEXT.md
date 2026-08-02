@@ -1,6 +1,6 @@
-# Ventas de la heladería
+# Ventas en Cucurucho
 
-Este contexto describe el lenguaje del registro de ventas de una heladería atendida por una sola persona.
+Este contexto describe el lenguaje de Cucurucho, la aplicación de registro de ventas de una heladería atendida por una sola persona.
 
 ## Language
 

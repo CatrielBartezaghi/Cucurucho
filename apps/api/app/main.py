@@ -94,7 +94,7 @@ def create_app(
     sales = Sales(clock)
 
     app = FastAPI(
-        title="Registro de ventas de la heladería",
+        title="Cucurucho API",
         version="1.0.0",
         openapi_url="/api/openapi.json",
         docs_url="/api/docs",

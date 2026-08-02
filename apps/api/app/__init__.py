@@ -1,2 +1,1 @@
-"""Backend del registro de ventas."""
-
+"""Backend de Cucurucho."""

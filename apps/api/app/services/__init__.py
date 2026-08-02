@@ -1,2 +1,1 @@
-"""Módulos de negocio del registro de ventas."""
-
+"""Módulos de negocio de Cucurucho."""

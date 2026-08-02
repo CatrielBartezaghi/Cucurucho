@@ -1,6 +1,6 @@
-# Heladería ERP
+# Cucurucho
 
-Monorepo del registro de ventas. `apps/web` contiene el frontend Next.js y
+Monorepo de Cucurucho, la aplicación de gestión de la heladería. `apps/web` contiene el frontend Next.js y
 `apps/api` el backend FastAPI. Ambos se despliegan como proyectos Vercel
 independientes; el navegador consume exclusivamente rutas same-origin `/api/*`.
 
@@ -17,4 +17,3 @@ independientes; el navegador consume exclusivamente rutas same-origin `/api/*`.
 
 - Backend: `docker compose run --rm api-tests`
 - Frontend: `npm test`, `npm run typecheck` y `npm run test:e2e`
-

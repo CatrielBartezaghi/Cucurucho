@@ -28,9 +28,9 @@ export default function LoginPage() {
   return (
     <main className="login-shell">
       <section className="login-card" aria-labelledby="login-title">
-        <div className="brand-mark" aria-hidden="true">H</div>
-        <p className="eyebrow">Heladería</p>
-        <h1 id="login-title">Registro de ventas</h1>
+        <div className="brand-mark" aria-hidden="true">C</div>
+        <p className="eyebrow">Gestión de heladería</p>
+        <h1 id="login-title">Cucurucho</h1>
         <p className="muted">Ingresá para comenzar tu jornada.</p>
         <form onSubmit={submit} className="stack">
           <label>
@@ -48,4 +48,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

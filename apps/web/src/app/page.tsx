@@ -78,8 +78,8 @@ export default function HomePage() {
     <div className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Heladería</p>
-          <h1>Registro diario</h1>
+          <p className="eyebrow">Gestión de heladería</p>
+          <h1>Cucurucho</h1>
         </div>
         <div className="user-actions">
           <span>{username}</span>
