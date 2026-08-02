@@ -1,0 +1,19 @@
+{
+  "name": "heladeria-erp",
+  "private": true,
+  "workspaces": ["apps/web"],
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
+  },
+  "devDependencies": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace apps/web",
+    "test": "npm run test --workspace apps/web",
+    "typecheck": "npm run typecheck --workspace apps/web",
+    "build": "npm run build --workspace apps/web"
+  }
+}

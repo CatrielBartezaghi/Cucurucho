@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: heladeria
+      POSTGRES_USER: heladeria
+      POSTGRES_PASSWORD: heladeria
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heladeria"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  api-tests:
+    build: ./apps/api
+    environment:
+      DATABASE_URL: postgresql+psycopg://heladeria:heladeria@db:5432/heladeria
+      DIRECT_DATABASE_URL: postgresql+psycopg://heladeria:heladeria@db:5432/heladeria
+      APP_ORIGIN: https://testserver
+      SESSION_COOKIE_SECURE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && pytest"
+
+  api:
+    build: ./apps/api
+    environment:
+      DATABASE_URL: postgresql+psycopg://heladeria:heladeria@db:5432/heladeria
+      DIRECT_DATABASE_URL: postgresql+psycopg://heladeria:heladeria@db:5432/heladeria
+      APP_ORIGIN: http://localhost:3000
+      SESSION_COOKIE_SECURE: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres-data:

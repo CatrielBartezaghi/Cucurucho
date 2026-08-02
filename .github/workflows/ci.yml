@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heladeria
+          POSTGRES_USER: heladeria
+          POSTGRES_PASSWORD: heladeria
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U heladeria"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: apps/api
+    env:
+      DATABASE_URL: postgresql+psycopg://heladeria:heladeria@localhost:5432/heladeria
+      DIRECT_DATABASE_URL: postgresql+psycopg://heladeria:heladeria@localhost:5432/heladeria
+      TEST_DATABASE_URL: postgresql+psycopg://heladeria:heladeria@localhost:5432/heladeria
+      APP_ORIGIN: https://testserver
+      SESSION_COOKIE_SECURE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[test]"
+      - run: alembic upgrade head
+      - run: ruff check app tests migrations
+      - run: mypy app
+      - run: pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm }
+      - run: npm ci
+      - run: npm audit
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  browser:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: heladeria
+          POSTGRES_USER: heladeria
+          POSTGRES_PASSWORD: heladeria
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U heladeria"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://heladeria:heladeria@localhost:5432/heladeria
+      DIRECT_DATABASE_URL: postgresql+psycopg://heladeria:heladeria@localhost:5432/heladeria
+      APP_ORIGIN: http://localhost:3000
+      SESSION_COOKIE_SECURE: "false"
+      API_ORIGIN: http://localhost:8000
+      PROVISION_PASSWORD: helado-seguro
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm }
+      - run: pip install -e ".[test]"
+        working-directory: apps/api
+      - run: alembic upgrade head && python -m app.provision operadora
+        working-directory: apps/api
+      - run: uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        working-directory: apps/api
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run test:e2e --workspace apps/web -- --project=desktop
+

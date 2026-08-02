@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-labelledby="title">
+  <title id="title">Helado genérico</title>
+  <rect width="320" height="220" rx="24" fill="#f7e9dc"/>
+  <path d="M120 90h80l-16 100h-48z" fill="#c77b4b"/>
+  <circle cx="140" cy="82" r="42" fill="#ef9ab6"/>
+  <circle cx="180" cy="82" r="42" fill="#f5c66c"/>
+  <circle cx="160" cy="54" r="42" fill="#8fc9a9"/>
+</svg>
+
