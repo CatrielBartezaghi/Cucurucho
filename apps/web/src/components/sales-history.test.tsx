@@ -73,3 +73,10 @@ it("conserva la Observación para reintentar después de un error recuperable", 
 
   expect(prompt).toHaveBeenNthCalledWith(2, "Observación", " Cliente habitual ");
 });
+
+it("muestra progreso sin combinar el nuevo Día de venta con datos anteriores", () => {
+  render(<SalesHistory day="2026-08-02" history={null} loading onDayChange={vi.fn()} onRefresh={vi.fn()} onError={vi.fn()} />);
+
+  expect(screen.getByText("Consultando Ventas…")).toBeInTheDocument();
+  expect(screen.queryByText("Total vendido")).not.toBeInTheDocument();
+});

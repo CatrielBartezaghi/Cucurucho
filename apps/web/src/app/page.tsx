@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, SessionExpiredError, api, buenosAiresToday, Product, Sale, SalesByDay } from "@/lib/api";
 import { Catalog } from "@/components/catalog";
@@ -15,9 +15,11 @@ export default function HomePage() {
   const [section, setSection] = useState<Section>("sale");
   const [products, setProducts] = useState<Product[]>([]);
   const [history, setHistory] = useState<SalesByDay | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [day, setDay] = useState(buenosAiresToday());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const historyRequest = useRef(0);
 
   function handleError(reason: unknown) {
     if (reason instanceof SessionExpiredError) {
@@ -36,10 +38,16 @@ export default function HomePage() {
   }
 
   async function loadHistory(selectedDay = day) {
+    const request = ++historyRequest.current;
+    setHistoryLoading(true);
+    setHistory(null);
     try {
-      setHistory(await api.sales(selectedDay));
+      const sales = await api.sales(selectedDay);
+      if (request === historyRequest.current) setHistory(sales);
     } catch (reason) {
-      handleError(reason);
+      if (request === historyRequest.current) handleError(reason);
+    } finally {
+      if (request === historyRequest.current) setHistoryLoading(false);
     }
   }
 
@@ -90,9 +98,8 @@ export default function HomePage() {
       <main className="content">
         {section === "sale" && <RegisterSale products={products.filter((product) => product.active)} onConfirmed={(sale) => { setDay(sale.sale_day); loadHistory(sale.sale_day); }} onError={handleError} />}
         {section === "catalog" && <Catalog products={products} onRefresh={() => loadProducts(true)} onError={handleError} />}
-        {section === "history" && history && <SalesHistory day={day} history={history} onDayChange={(value) => { setDay(value); loadHistory(value); }} onRefresh={() => loadHistory()} onError={handleError} />}
+        {section === "history" && <SalesHistory day={day} history={history} loading={historyLoading} onDayChange={(value) => { setDay(value); loadHistory(value); }} onRefresh={() => loadHistory()} onError={handleError} />}
       </main>
     </div>
   );
 }
-

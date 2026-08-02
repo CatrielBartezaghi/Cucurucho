@@ -6,13 +6,14 @@ import { paymentMethodLabels } from "@/lib/payment-methods";
 
 interface Props {
   day: string;
-  history: SalesByDay;
+  history: SalesByDay | null;
+  loading?: boolean;
   onDayChange: (day: string) => void;
   onRefresh: () => Promise<void>;
   onError: (reason: unknown) => void;
 }
 
-export function SalesHistory({ day, history, onDayChange, onRefresh, onError }: Props) {
+export function SalesHistory({ day, history, loading = false, onDayChange, onRefresh, onError }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [annulmentDrafts, setAnnulmentDrafts] = useState<Record<string, string>>({});
   const [observationDrafts, setObservationDrafts] = useState<Record<string, string>>({});
@@ -67,6 +68,9 @@ export function SalesHistory({ day, history, onDayChange, onRefresh, onError }: 
         <div><p className="eyebrow">Historial</p><h2 id="history-title">Ventas del día</h2></div>
         <label className="date-picker">Día de venta<input type="date" value={day} onChange={(event) => onDayChange(event.target.value)} /></label>
       </div>
+      {loading ? <p className="empty large" aria-live="polite">Consultando Ventas…</p> : history === null ? (
+        <p className="empty large">No pudimos cargar las Ventas de este día. Reintentá la consulta.</p>
+      ) : <>
       <div className="day-total"><span>Total vendido</span><strong>{pesos(history.total_sold)}</strong></div>
       {history.sales.length === 0 ? <p className="empty large">No hay Ventas registradas para este día.</p> : (
         <div className="sales-list">
@@ -89,6 +93,7 @@ export function SalesHistory({ day, history, onDayChange, onRefresh, onError }: 
           ))}
         </div>
       )}
+      </>}
     </section>
   );
 }

@@ -24,6 +24,16 @@ def normalized_product_name(name: str) -> str:
     return "".join(character for character in decomposed if not unicodedata.combining(character))
 
 
+def detected_image_type(content: bytes) -> str | None:
+    if content.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if len(content) >= 12 and content.startswith(b"RIFF") and content[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
 class ProductCatalog:
     def __init__(self, image_storage: ImageStorage) -> None:
         self._images = image_storage
@@ -83,6 +93,13 @@ class ProductCatalog:
                 "image_too_large",
                 "La imagen no puede superar 5 MB.",
                 {"image": "Elegí un archivo de hasta 5 MB."},
+            )
+        if detected_image_type(content) != content_type:
+            raise ApiError(
+                422,
+                "invalid_image_type",
+                "El contenido de la imagen no coincide con un formato admitido.",
+                {"image": "Elegí un archivo JPEG, PNG o WebP válido."},
             )
         product = self.get(db, product_id)
         previous_key = product.image_key

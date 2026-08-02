@@ -2,39 +2,43 @@ import { expect, test } from "@playwright/test";
 
 test("crea un Producto, confirma, consulta y anula una Venta, y cierra sesión", async ({ page }) => {
   await page.goto("/login");
-  await page.getByLabel("Usuario").fill(process.env.E2E_USERNAME ?? "operadora");
-  await page.getByLabel("Contraseña").fill(process.env.E2E_PASSWORD ?? "helado-seguro");
-  await page.getByRole("button", { name: "Ingresar" }).click();
+  const username = page.getByLabel("Usuario");
+  const password = page.getByLabel("Contraseña");
+  await username.fill(process.env.E2E_USERNAME ?? "operadora");
+  await username.press("Tab");
+  await expect(password).toBeFocused();
+  await password.fill(process.env.E2E_PASSWORD ?? "helado-seguro");
+  await password.press("Enter");
   await expect(page.getByRole("heading", { name: "Nueva Venta" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Productos" }).click();
+  await page.getByRole("button", { name: "Productos" }).press("Enter");
   const productName = `Cucurucho E2E ${Date.now()}`;
   await page.getByLabel("Nombre").fill(productName);
   await page.getByLabel("Precio").fill("1200.50");
-  await page.getByRole("button", { name: "Agregar Producto" }).click();
+  await page.getByRole("button", { name: "Agregar Producto" }).press("Enter");
   await expect(page.getByRole("heading", { name: productName })).toBeVisible();
 
-  await page.getByRole("button", { name: "Nueva venta" }).click();
+  await page.getByRole("button", { name: "Nueva venta" }).press("Enter");
   const product = page.getByRole("button", { name: `Agregar ${productName}` });
   await expect(product).toBeVisible();
-  await product.click();
-  await page.getByLabel("Efectivo").click();
-  await page.getByRole("button", { name: "Confirmar Venta" }).click();
+  await product.press("Enter");
+  await page.getByLabel("Efectivo").press("Space");
+  await page.getByRole("button", { name: "Confirmar Venta" }).press("Enter");
   await expect(page.getByText(/Venta confirmada por/)).toBeVisible();
 
-  await page.getByRole("button", { name: "Ventas del día" }).click();
+  await page.getByRole("button", { name: "Ventas del día" }).press("Enter");
   const total = page.locator(".day-total");
   const totalBefore = parseArgentineMoney(await total.textContent());
   const sale = page.locator(".sale-card").filter({ hasText: productName });
   await expect(sale).toBeVisible();
-  await sale.locator("summary").click();
+  await sale.locator("summary").press("Enter");
   page.on("dialog", async (dialog) => {
     await dialog.accept(dialog.type() === "prompt" ? "Error de carga E2E" : undefined);
   });
-  await sale.getByRole("button", { name: "Anular Venta" }).click();
+  await sale.getByRole("button", { name: "Anular Venta" }).press("Enter");
   await expect(sale.getByText("Anulada")).toBeVisible();
   await expect.poll(async () => parseArgentineMoney(await total.textContent())).toBe(totalBefore - 1200.5);
-  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await page.getByRole("button", { name: "Cerrar sesión" }).press("Enter");
   await expect(page.getByRole("heading", { name: "Registro de ventas" })).toBeVisible();
 });
 
