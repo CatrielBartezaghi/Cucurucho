@@ -106,3 +106,7 @@ def test_openapi_is_available_and_stable(client):
     assert schema.status_code == 200
     assert "/api/ventas" in schema.json()["paths"]
     assert "/api/productos" in schema.json()["paths"]
+    validation_error = schema.json()["paths"]["/api/ventas"]["post"]["responses"]["422"]
+    assert validation_error["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/ErrorOutput"
+    }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import unicodedata
 import uuid
 from datetime import UTC, datetime
@@ -15,6 +16,7 @@ from ..storage import ImageStorage
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
+logger = logging.getLogger(__name__)
 
 
 def normalized_product_name(name: str) -> str:
@@ -114,10 +116,8 @@ class ProductCatalog:
             self._best_effort_delete(previous_key)
         return product
 
-    def get(self, db: Session, product_id: uuid.UUID, for_update: bool = False) -> Product:
+    def get(self, db: Session, product_id: uuid.UUID) -> Product:
         query = select(Product).where(Product.id == product_id)
-        if for_update:
-            query = query.with_for_update()
         product = db.scalar(query)
         if product is None:
             raise ApiError(404, "product_not_found", "No se encontró el Producto.")
@@ -144,5 +144,4 @@ class ProductCatalog:
             self._images.delete(key)
         except Exception:
             # A stale object is safe: PostgreSQL never points to a missing current image.
-            pass
-
+            logger.exception("No se pudo eliminar la Imagen de producto obsoleta %s.", key)

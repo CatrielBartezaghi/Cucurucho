@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from conftest import FakeImageStorage
 from fastapi.testclient import TestClient
 
@@ -71,6 +73,32 @@ def test_invalid_or_failed_image_keeps_the_current_image(
     assert failed.status_code == 502
     catalog = client.get("/api/productos").json()
     assert catalog[0]["image_url"] == uploaded["image_url"]
+
+
+def test_failed_image_cleanup_keeps_the_new_reference_and_is_logged(
+    client: TestClient,
+    login,
+    product_factory,
+    image_storage: FakeImageStorage,
+    caplog,
+) -> None:
+    login()
+    product = product_factory("Bombón", "1800.00")
+    client.put(
+        f"/api/productos/{product['id']}/imagen",
+        files={"image": ("bombon.jpg", b"first", "image/jpeg")},
+    )
+    image_storage.fail_delete = True
+
+    with caplog.at_level(logging.ERROR):
+        replaced = client.put(
+            f"/api/productos/{product['id']}/imagen",
+            files={"image": ("bombon.png", b"second", "image/png")},
+        )
+
+    assert replaced.status_code == 200
+    assert replaced.json()["image_url"].endswith("products/image-2")
+    assert "products/image-1" in caplog.text
 
 
 def test_image_larger_than_five_megabytes_is_rejected(

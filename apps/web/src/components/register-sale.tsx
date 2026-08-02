@@ -2,20 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { addMoney, api, PaymentMethod, pesos, Product, Sale } from "@/lib/api";
+import { paymentMethods } from "@/lib/payment-methods";
 
 interface CartLine {
   localId: string;
   product: Product;
   quantity: number;
 }
-
-const paymentMethods: Array<[PaymentMethod, string]> = [
-  ["cash", "Efectivo"],
-  ["transfer", "Transferencia"],
-  ["debit_card", "Tarjeta de débito"],
-  ["credit_card", "Tarjeta de crédito"],
-  ["qr", "QR"],
-];
 
 interface Props {
   products: Product[];
@@ -34,6 +27,7 @@ export function RegisterSale({ products, onConfirmed, onError }: Props) {
     () => addMoney(cart.map((line) => ({ price: line.product.price, quantity: line.quantity }))),
     [cart],
   );
+  const selectionLocked = busy || state === "uncertain";
 
   function add(product: Product) {
     setCart((current) => [...current, { localId: crypto.randomUUID(), product, quantity: 1 }]);
@@ -87,7 +81,7 @@ export function RegisterSale({ products, onConfirmed, onError }: Props) {
           {products.length === 0 ? <p className="empty">No hay Productos activos.</p> : (
             <div className="picker-grid">
               {products.map((product) => (
-                <button className="picker" key={product.id} aria-label={`Agregar ${product.name}`} onClick={() => add(product)}>
+                <button className="picker" key={product.id} aria-label={`Agregar ${product.name}`} disabled={selectionLocked} onClick={() => add(product)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={product.image_url ?? "/product-placeholder.svg"} alt="" />
                   <span>{product.name}</span><strong>{pesos(product.price)}</strong>
@@ -104,11 +98,11 @@ export function RegisterSale({ products, onConfirmed, onError }: Props) {
                 <li key={line.localId}>
                   <div><strong>{line.product.name}</strong><small>{pesos(line.product.price)} c/u</small></div>
                   <div className="quantity" aria-label={`Cantidad de ${line.product.name}`}>
-                    <button onClick={() => quantity(line.localId, -1)} disabled={line.quantity === 1}>−</button>
+                    <button onClick={() => quantity(line.localId, -1)} disabled={selectionLocked || line.quantity === 1}>−</button>
                     <span>{line.quantity}</span>
-                    <button onClick={() => quantity(line.localId, 1)}>+</button>
+                    <button onClick={() => quantity(line.localId, 1)} disabled={selectionLocked}>+</button>
                   </div>
-                  <button className="remove" aria-label={`Quitar ${line.product.name}`} onClick={() => setCart((current) => current.filter((item) => item.localId !== line.localId))}>×</button>
+                  <button className="remove" aria-label={`Quitar ${line.product.name}`} disabled={selectionLocked} onClick={() => setCart((current) => current.filter((item) => item.localId !== line.localId))}>×</button>
                 </li>
               ))}
             </ol>
@@ -117,7 +111,7 @@ export function RegisterSale({ products, onConfirmed, onError }: Props) {
           <fieldset>
             <legend>Medio de pago</legend>
             <div className="payment-grid">
-              {paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="payment" value={value} checked={paymentMethod === value} onChange={() => setPaymentMethod(value)} />{label}</label>)}
+              {paymentMethods.map(([value, label]) => <label key={value}><input type="radio" name="payment" value={value} checked={paymentMethod === value} disabled={selectionLocked} onChange={() => setPaymentMethod(value)} />{label}</label>)}
             </div>
           </fieldset>
           <button className="primary confirm" disabled={busy || cart.length === 0 || !paymentMethod} onClick={confirm}>

@@ -38,6 +38,8 @@ jobs:
       - run: ruff check app tests migrations
       - run: mypy app
       - run: pytest
+      - run: python -m app.export_openapi ../../apps/web/src/lib/openapi.json
+      - run: git diff --exit-code -- ../../apps/web/src/lib/openapi.json
 
   frontend:
     runs-on: ubuntu-latest
@@ -47,6 +49,7 @@ jobs:
         with: { node-version: "22", cache: npm }
       - run: npm ci
       - run: npm audit
+      - run: npm run contract:check --workspace apps/web
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
@@ -88,5 +91,4 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
         working-directory: apps/web
-      - run: npm run test:e2e --workspace apps/web -- --project=desktop
-
+      - run: npm run test:e2e --workspace apps/web

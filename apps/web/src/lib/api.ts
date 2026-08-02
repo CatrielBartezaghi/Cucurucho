@@ -1,10 +1,14 @@
-export type PaymentMethod = "cash" | "transfer" | "debit_card" | "credit_card" | "qr";
+import type { components } from "./openapi.generated";
 
-export interface ApiErrorBody {
-  code: string;
-  message: string;
-  field_errors: Record<string, string>;
-}
+type Schemas = components["schemas"];
+type LoginInput = Schemas["LoginInput"];
+type ProductInput = Schemas["ProductInput"];
+type SaleInput = Schemas["SaleInput"];
+type ObservationInput = Schemas["ObservationInput"];
+type AnnulmentInput = Schemas["AnnulmentInput"];
+
+export type PaymentMethod = SaleInput["payment_method"];
+export type ApiErrorBody = Schemas["ErrorOutput"];
 
 export class ApiError extends Error {
   constructor(public status: number, public body: ApiErrorBody) {
@@ -14,39 +18,10 @@ export class ApiError extends Error {
 
 export class SessionExpiredError extends ApiError {}
 
-export interface Product {
-  id: string;
-  name: string;
-  price: string;
-  active: boolean;
-  image_url: string | null;
-}
-
-export interface SaleDetail {
-  id: string;
-  product_id: string;
-  product_name: string;
-  unit_price: string;
-  quantity: number;
-  position: number;
-}
-
-export interface Sale {
-  id: string;
-  payment_method: PaymentMethod;
-  total: string;
-  sold_at: string;
-  sale_day: string;
-  observation: string | null;
-  annulment: { reason: string; annulled_at: string } | null;
-  details: SaleDetail[];
-}
-
-export interface SalesByDay {
-  day: string;
-  total_sold: string;
-  sales: Sale[];
-}
+export type Product = Schemas["ProductOutput"];
+export type SaleDetail = Schemas["SaleDetailOutput"];
+export type Sale = Schemas["SaleOutput"];
+export type SalesByDay = Schemas["SalesByDayOutput"];
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
@@ -67,21 +42,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  login: (username: string, password: string) =>
+  login: (username: LoginInput["username"], password: LoginInput["password"]) =>
     request<void>("/api/sesion/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     }),
   logout: () => request<void>("/api/sesion/logout", { method: "POST" }),
-  me: () => request<{ id: string; username: string }>("/api/sesion/actual"),
+  me: () => request<Schemas["CurrentSessionOutput"]>("/api/sesion/actual"),
   products: (includeInactive = false) =>
     request<Product[]>(`/api/productos${includeInactive ? "?incluir_inactivos=true" : ""}`),
-  createProduct: (name: string, price: string) =>
+  createProduct: (name: ProductInput["name"], price: ProductInput["price"]) =>
     request<Product>("/api/productos", {
       method: "POST",
       body: JSON.stringify({ name, price }),
     }),
-  updateProduct: (id: string, name: string, price: string) =>
+  updateProduct: (id: string, name: ProductInput["name"], price: ProductInput["price"]) =>
     request<Product>(`/api/productos/${id}`, {
       method: "PUT",
       body: JSON.stringify({ name, price }),
@@ -100,7 +75,7 @@ export const api = {
   confirmSale: (
     idempotencyKey: string,
     paymentMethod: PaymentMethod,
-    details: Array<{ product_id: string; quantity: number }>,
+    details: SaleInput["details"],
   ) =>
     request<Sale>("/api/ventas", {
       method: "POST",
@@ -108,12 +83,12 @@ export const api = {
       body: JSON.stringify({ payment_method: paymentMethod, details }),
     }),
   sales: (day: string) => request<SalesByDay>(`/api/ventas?dia=${encodeURIComponent(day)}`),
-  annulSale: (id: string, reason: string) =>
+  annulSale: (id: string, reason: AnnulmentInput["reason"]) =>
     request<Sale>(`/api/ventas/${id}/anulacion`, {
       method: "POST",
       body: JSON.stringify({ reason }),
     }),
-  saveObservation: (id: string, observation: string) =>
+  saveObservation: (id: string, observation: ObservationInput["observation"]) =>
     request<Sale>(`/api/ventas/${id}/observacion`, {
       method: "PUT",
       body: JSON.stringify({ observation }),
@@ -143,4 +118,8 @@ export function addMoney(values: Array<{ price: string; quantity: number }>): st
     return sum + (Number(whole) * 100 + Number(decimal.padEnd(2, "0"))) * item.quantity;
   }, 0);
   return `${Math.trunc(cents / 100)}.${String(cents % 100).padStart(2, "0")}`;
+}
+
+export function multiplyMoney(price: string, quantity: number): string {
+  return addMoney([{ price, quantity }]);
 }

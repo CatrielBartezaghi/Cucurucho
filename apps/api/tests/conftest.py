@@ -21,6 +21,7 @@ class FakeImageStorage:
         self.images: dict[str, bytes] = {}
         self.deleted: list[str] = []
         self.fail_upload = False
+        self.fail_delete = False
 
     def upload(self, content: bytes, content_type: str) -> StoredImage:
         if self.fail_upload:
@@ -30,6 +31,8 @@ class FakeImageStorage:
         return StoredImage(key=key, url=f"https://images.test/{key}")
 
     def delete(self, key: str) -> None:
+        if self.fail_delete:
+            raise RuntimeError("controlled delete failure")
         self.deleted.append(key)
         self.images.pop(key, None)
 

@@ -17,6 +17,8 @@ from .errors import install_error_handlers
 from .models import Product, Sale
 from .schemas import (
     AnnulmentInput,
+    CurrentSessionOutput,
+    ErrorOutput,
     LoginInput,
     ObservationInput,
     ProductInput,
@@ -96,6 +98,10 @@ def create_app(
         version="1.0.0",
         openapi_url="/api/openapi.json",
         docs_url="/api/docs",
+        responses={
+            status_code: {"model": ErrorOutput}
+            for status_code in (401, 403, 404, 409, 422, 502)
+        },
     )
     install_error_handlers(app)
 
@@ -157,8 +163,8 @@ def create_app(
         )
 
     @app.get("/api/sesion/actual")
-    def current_session(user: CurrentUser = Depends(authenticated_user)) -> dict[str, object]:
-        return {"id": user.id, "username": user.username}
+    def current_session(user: CurrentUser = Depends(authenticated_user)) -> CurrentSessionOutput:
+        return CurrentSessionOutput(id=user.id, username=user.username)
 
     @app.get("/api/productos", response_model=list[ProductOutput])
     def list_products(
@@ -286,4 +292,3 @@ def create_app(
 
 
 app = create_app()
-

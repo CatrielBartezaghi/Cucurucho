@@ -81,6 +81,8 @@ legend { margin-bottom:.6rem; font-weight:800; }
 .sale-details { padding:0 1.2rem 1.2rem; border-top:1px solid var(--line); }
 .sale-details ul { padding:0; list-style:none; }
 .sale-details li { display:flex; justify-content:space-between; padding:.45rem 0; }
+.sale-details li>span { display:grid; gap:.2rem; }
+.sale-details li small { color:var(--muted); }
 .annulment { padding:.75rem; color:#772b2b; background:#f6deda; border-radius:10px; }
 @media (max-width:800px) { .sale-layout { grid-template-columns:1fr; } .cart { position:static; } .create-product { grid-template-columns:1fr 1fr; } .create-product button { grid-column:1/3; } }
 @media (max-width:560px) { .topbar { align-items:flex-start; } .user-actions span { display:none; } .tabs { overflow:auto; } .tabs button { white-space:nowrap; } .section-heading { align-items:flex-start; } .create-product { grid-template-columns:1fr; } .create-product button { grid-column:auto; } .picker-grid,.product-grid { grid-template-columns:1fr; } .payment-grid { grid-template-columns:1fr; } }

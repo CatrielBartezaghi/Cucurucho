@@ -102,6 +102,45 @@ def test_annulment_is_once_only_and_observation_remains_editable(
     assert observed.json()["annulment"]["reason"] == "Error de carga"
 
 
+def test_observation_can_be_replaced_rejected_when_empty_and_removed(
+    client: TestClient, login, product_factory
+) -> None:
+    login()
+    product = product_factory("Vaso", "2200.00")
+    sale = client.post(
+        "/api/ventas",
+        headers={"Idempotency-Key": "observation-lifecycle"},
+        json=sale_payload(str(product["id"]), 2),
+    ).json()
+
+    added = client.put(
+        f"/api/ventas/{sale['id']}/observacion",
+        json={"observation": " Cliente habitual "},
+    )
+    assert added.status_code == 200
+    assert added.json()["observation"] == "Cliente habitual"
+
+    replaced = client.put(
+        f"/api/ventas/{sale['id']}/observacion",
+        json={"observation": "Retira más tarde"},
+    )
+    assert replaced.status_code == 200
+    assert replaced.json()["observation"] == "Retira más tarde"
+
+    rejected = client.put(
+        f"/api/ventas/{sale['id']}/observacion",
+        json={"observation": "   "},
+    )
+    assert rejected.status_code == 422
+    assert client.get(f"/api/ventas/{sale['id']}").json()["observation"] == "Retira más tarde"
+
+    removed = client.delete(f"/api/ventas/{sale['id']}/observacion")
+    assert removed.status_code == 200
+    assert removed.json()["observation"] is None
+    assert removed.json()["total"] == sale["total"]
+    assert removed.json()["sold_at"] == sale["sold_at"]
+
+
 def test_concurrent_retries_create_only_one_sale(
     client: TestClient, login, product_factory
 ) -> None:

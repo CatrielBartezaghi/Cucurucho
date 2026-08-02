@@ -53,6 +53,9 @@ describe("armado y confirmación de una Venta", () => {
     await user.click(screen.getByLabelText("Efectivo"));
     await user.click(screen.getByRole("button", { name: "Confirmar Venta" }));
     expect(await screen.findByText(/No pudimos comprobar/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Agregar Cucurucho" })).toBeDisabled();
+    expect(screen.getByLabelText("Efectivo")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Quitar Cucurucho" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Comprobar confirmación" }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));

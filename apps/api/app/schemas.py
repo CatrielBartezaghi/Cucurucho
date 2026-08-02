@@ -18,9 +18,27 @@ def validate_money(value: Decimal) -> Decimal:
     return quantized
 
 
+def validate_non_empty_text(value: str, message: str) -> str:
+    trimmed = value.strip()
+    if not trimmed:
+        raise ValueError(message)
+    return trimmed
+
+
 class LoginInput(BaseModel):
     username: str
     password: str
+
+
+class ErrorOutput(BaseModel):
+    code: str
+    message: str
+    field_errors: dict[str, str]
+
+
+class CurrentSessionOutput(BaseModel):
+    id: uuid.UUID
+    username: str
 
 
 class ProductInput(BaseModel):
@@ -67,10 +85,7 @@ class ObservationInput(BaseModel):
     @field_validator("observation")
     @classmethod
     def valid_observation(cls, value: str) -> str:
-        trimmed = value.strip()
-        if not trimmed:
-            raise ValueError("La observación no puede quedar vacía.")
-        return trimmed
+        return validate_non_empty_text(value, "La observación no puede quedar vacía.")
 
 
 class AnnulmentInput(BaseModel):
@@ -79,10 +94,7 @@ class AnnulmentInput(BaseModel):
     @field_validator("reason")
     @classmethod
     def valid_reason(cls, value: str) -> str:
-        trimmed = value.strip()
-        if not trimmed:
-            raise ValueError("El motivo de anulación es obligatorio.")
-        return trimmed
+        return validate_non_empty_text(value, "El motivo de anulación es obligatorio.")
 
 
 class AnnulmentOutput(BaseModel):

@@ -7,6 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "contract:generate": "openapi-typescript src/lib/openapi.json -o src/lib/openapi.generated.ts",
+    "contract:check": "npm run contract:generate && git diff --exit-code -- src/lib/openapi.generated.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test"
@@ -26,6 +28,7 @@
     "@types/react-dom": "19.1.9",
     "@vitejs/plugin-react": "4.3.4",
     "jsdom": "26.1.0",
+    "openapi-typescript": "^7.13.0",
     "typescript": "5.9.2",
     "vite": "6.4.3",
     "vitest": "3.2.7"
