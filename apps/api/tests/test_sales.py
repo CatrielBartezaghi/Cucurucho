@@ -67,7 +67,11 @@ def test_sale_keeps_historical_name_and_price(client: TestClient, login, product
     ).json()
     client.put(
         f"/api/productos/{product['id']}",
-        json={"name": "Cuarto premium", "price": "5000.00"},
+        json={
+            "name": "Cuarto premium",
+            "price": "5000.00",
+            "category_id": product["category"]["id"],
+        },
     )
 
     stored = client.get(f"/api/ventas/{sale['id']}").json()
@@ -190,8 +194,14 @@ def test_sale_day_uses_buenos_aires_at_both_sides_of_utc_midnight(
             "/api/sesion/login",
             json={"username": "operadora", "password": "helado-seguro"},
         ).status_code == 204
+        helado = next(
+            category
+            for category in fixed_client.get("/api/categorias").json()
+            if category["name"] == "Helado"
+        )
         product = fixed_client.post(
-            "/api/productos", json={"name": "Kilo", "price": "15000.00"}
+            "/api/productos",
+            json={"name": "Kilo", "price": "15000.00", "category_id": helado["id"]},
         ).json()
         first = fixed_client.post(
             "/api/ventas",

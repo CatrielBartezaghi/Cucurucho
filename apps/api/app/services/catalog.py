@@ -10,8 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..errors import ApiError
-from ..models import Product
-from ..schemas import ProductInput
+from ..models import Category, Product
+from ..schemas import CategoryInput, ProductInput
 from ..storage import ImageStorage
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -19,7 +19,7 @@ MAX_IMAGE_BYTES = 5 * 1024 * 1024
 logger = logging.getLogger(__name__)
 
 
-def normalized_product_name(name: str) -> str:
+def normalized_name(name: str) -> str:
     decomposed = unicodedata.normalize("NFKD", name.strip().casefold())
     return "".join(character for character in decomposed if not unicodedata.combining(character))
 
@@ -38,7 +38,7 @@ class ProductCatalog:
     def __init__(self, image_storage: ImageStorage) -> None:
         self._images = image_storage
 
-    def list(self, db: Session, include_inactive: bool) -> list[Product]:
+    def list_products(self, db: Session, include_inactive: bool) -> list[Product]:
         query = select(Product).order_by(Product.name)
         if not include_inactive:
             query = query.where(Product.active.is_(True))
@@ -46,12 +46,14 @@ class ProductCatalog:
 
     def create(self, db: Session, data: ProductInput) -> Product:
         now = datetime.now(UTC)
+        category = self.get_category(db, data.category_id)
         return self._persist(
             db,
             Product(
                 name=data.name,
-                normalized_name=normalized_product_name(data.name),
+                normalized_name=normalized_name(data.name),
                 price=data.price,
+                category=category,
                 active=True,
                 created_at=now,
                 updated_at=now,
@@ -60,9 +62,11 @@ class ProductCatalog:
 
     def update(self, db: Session, product_id: uuid.UUID, data: ProductInput) -> Product:
         product = self.get(db, product_id)
+        category = self.get_category(db, data.category_id)
         product.name = data.name
-        product.normalized_name = normalized_product_name(data.name)
+        product.normalized_name = normalized_name(data.name)
         product.price = data.price
+        product.category = category
         product.updated_at = datetime.now(UTC)
         return self._persist(db, product)
 
@@ -140,6 +144,36 @@ class ProductCatalog:
             raise ApiError(404, "product_not_found", "No se encontró el Producto.")
         return product
 
+    def list_categories(self, db: Session) -> list[Category]:
+        return list(db.scalars(select(Category).order_by(Category.name)))
+
+    def create_category(self, db: Session, data: CategoryInput) -> Category:
+        now = datetime.now(UTC)
+        return self._persist_category(
+            db,
+            Category(
+                name=data.name,
+                normalized_name=normalized_name(data.name),
+                created_at=now,
+                updated_at=now,
+            ),
+        )
+
+    def update_category(
+        self, db: Session, category_id: uuid.UUID, data: CategoryInput
+    ) -> Category:
+        category = self.get_category(db, category_id)
+        category.name = data.name
+        category.normalized_name = normalized_name(data.name)
+        category.updated_at = datetime.now(UTC)
+        return self._persist_category(db, category)
+
+    def get_category(self, db: Session, category_id: uuid.UUID) -> Category:
+        category = db.get(Category, category_id)
+        if category is None:
+            raise ApiError(404, "category_not_found", "No se encontró la Categoría.")
+        return category
+
     @staticmethod
     def _persist(db: Session, product: Product) -> Product:
         try:
@@ -155,6 +189,22 @@ class ProductCatalog:
             ) from exc
         db.refresh(product)
         return product
+
+    @staticmethod
+    def _persist_category(db: Session, category: Category) -> Category:
+        try:
+            db.add(category)
+            db.commit()
+        except IntegrityError as exc:
+            db.rollback()
+            raise ApiError(
+                409,
+                "category_name_conflict",
+                "Ya existe una Categoría con ese nombre.",
+                {"name": "Elegí un nombre diferente."},
+            ) from exc
+        db.refresh(category)
+        return category
 
     def _best_effort_delete(self, key: str) -> None:
         try:

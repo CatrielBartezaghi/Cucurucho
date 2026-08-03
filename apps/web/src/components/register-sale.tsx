@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { addMoney, api, PaymentMethod, pesos, Product, Sale } from "@/lib/api";
+import { addMoney, api, Category, PaymentMethod, pesos, Product, Sale } from "@/lib/api";
 import { paymentMethods } from "@/lib/payment-methods";
 
 interface CartLine {
@@ -12,17 +12,32 @@ interface CartLine {
 
 interface Props {
   products: Product[];
+  categories?: Category[];
   onConfirmed: (sale: Sale) => void;
   onError: (reason: unknown) => void;
 }
 
-export function RegisterSale({ products, onConfirmed, onError }: Props) {
+export function RegisterSale({ products, categories, onConfirmed, onError }: Props) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState<"editing" | "pending" | "uncertain" | "confirmed">("editing");
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [confirmedSale, setConfirmedSale] = useState<Sale | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const availableCategories = useMemo(
+    () =>
+      categories ??
+      Array.from(new Map(products.map((product) => [product.category.id, product.category])).values()),
+    [categories, products],
+  );
+  const visibleProducts = useMemo(
+    () =>
+      selectedCategoryIds.length === 0
+        ? products
+        : products.filter((product) => selectedCategoryIds.includes(product.category.id)),
+    [products, selectedCategoryIds],
+  );
   const total = useMemo(
     () => addMoney(cart.map((line) => ({ price: line.product.price, quantity: line.quantity }))),
     [cart],
@@ -78,13 +93,31 @@ export function RegisterSale({ products, onConfirmed, onError }: Props) {
       <div className="sale-layout">
         <div>
           <h3 className="subheading">Elegí Productos</h3>
+          <label className="category-filter">
+            Filtrar por Categorías
+            <select
+              multiple
+              value={selectedCategoryIds}
+              onChange={(event) =>
+                setSelectedCategoryIds(
+                  Array.from(event.currentTarget.selectedOptions, (option) => option.value),
+                )
+              }
+              aria-label="Filtrar por Categorías"
+            >
+              {availableCategories.map((category) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
+            <small>Elegí una o varias. Sin selección se muestran todas.</small>
+          </label>
           {products.length === 0 ? <p className="empty">No hay Productos activos.</p> : (
-            <div className="picker-grid">
-              {products.map((product) => (
+            visibleProducts.length === 0 ? <p className="empty">No hay Productos en las Categorías seleccionadas.</p> : <div className="picker-grid">
+              {visibleProducts.map((product) => (
                 <button className="picker" key={product.id} aria-label={`Agregar ${product.name}`} disabled={selectionLocked} onClick={() => add(product)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={product.image_url ?? "/product-placeholder.svg"} alt="" />
-                  <span>{product.name}</span><strong>{pesos(product.price)}</strong>
+                  <span>{product.name}<small>{product.category.name}</small></span><strong>{pesos(product.price)}</strong>
                 </button>
               ))}
             </div>

@@ -15,6 +15,7 @@ test("crea un Producto, confirma, consulta y anula una Venta, y cierra sesión",
   const productName = `Cucurucho E2E ${Date.now()}`;
   await page.getByLabel("Nombre").fill(productName);
   await page.getByLabel("Precio").fill("1200.50");
+  await page.locator(".create-product").getByLabel("Categoría").selectOption({ label: "Helado" });
   await page.getByRole("button", { name: "Agregar Producto" }).press("Enter");
   await expect(page.getByRole("heading", { name: productName })).toBeVisible();
 

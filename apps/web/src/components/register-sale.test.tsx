@@ -3,9 +3,47 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { RegisterSale } from "./register-sale";
 
-const product = { id: "p1", name: "Cucurucho", price: "1200.50", active: true, image_url: null };
+const helado = { id: "c1", name: "Helado" };
+const product = {
+  id: "p1",
+  name: "Cucurucho",
+  price: "1200.50",
+  active: true,
+  image_url: null,
+  category: helado,
+};
 
 describe("armado y confirmación de una Venta", () => {
+  it("filtra Productos por la unión de las Categorías seleccionadas", async () => {
+    const products = [
+      product,
+      {
+        ...product,
+        id: "p2",
+        name: "Gaseosa",
+        category: { id: "c2", name: "Envasado" },
+      },
+      {
+        ...product,
+        id: "p3",
+        name: "Cuchara",
+        category: { id: "c3", name: "Otros" },
+      },
+    ];
+    const user = userEvent.setup();
+    render(<RegisterSale products={products} onConfirmed={vi.fn()} onError={vi.fn()} />);
+
+    const categoryFilter = screen.getByRole("listbox", { name: "Filtrar por Categorías" });
+    await user.selectOptions(categoryFilter, ["c1", "c3"]);
+
+    expect(screen.getByRole("button", { name: "Agregar Cucurucho" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Agregar Cuchara" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Agregar Gaseosa" })).not.toBeInTheDocument();
+
+    await user.deselectOptions(categoryFilter, ["c1", "c3"]);
+    expect(screen.getByRole("button", { name: "Agregar Gaseosa" })).toBeInTheDocument();
+  });
+
   it("conserva Productos repetidos como detalles y limpia solo tras respuesta autoritativa", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       id: "s1",

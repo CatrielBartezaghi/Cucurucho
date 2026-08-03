@@ -47,6 +47,39 @@
         "title": "Body_replace_product_image_api_productos__product_id__imagen_put",
         "type": "object"
       },
+      "CategoryInput": {
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CategoryInput",
+        "type": "object"
+      },
+      "CategoryOutput": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CategoryOutput",
+        "type": "object"
+      },
       "CurrentSessionOutput": {
         "properties": {
           "id": {
@@ -125,6 +158,11 @@
       },
       "ProductInput": {
         "properties": {
+          "category_id": {
+            "format": "uuid",
+            "title": "Category Id",
+            "type": "string"
+          },
           "name": {
             "maxLength": 150,
             "title": "Name",
@@ -145,7 +183,8 @@
         },
         "required": [
           "name",
-          "price"
+          "price",
+          "category_id"
         ],
         "title": "ProductInput",
         "type": "object"
@@ -155,6 +194,9 @@
           "active": {
             "title": "Active",
             "type": "boolean"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CategoryOutput"
           },
           "id": {
             "format": "uuid",
@@ -186,7 +228,8 @@
           "name",
           "price",
           "active",
-          "image_url"
+          "image_url",
+          "category"
         ],
         "title": "ProductOutput",
         "type": "object"
@@ -389,6 +432,274 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/categorias": {
+      "get": {
+        "operationId": "list_categories_api_categorias_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryOutput"
+                  },
+                  "title": "Response List Categories Api Categorias Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          }
+        },
+        "summary": "List Categories"
+      },
+      "post": {
+        "operationId": "create_category_api_categorias_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryOutput"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          }
+        },
+        "summary": "Create Category"
+      }
+    },
+    "/api/categorias/{category_id}": {
+      "put": {
+        "operationId": "update_category_api_categorias__category_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Category Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryOutput"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOutput"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          }
+        },
+        "summary": "Update Category"
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "health_api_health_get",
@@ -455,7 +766,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -549,7 +860,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -635,7 +946,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -735,7 +1046,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -825,7 +1136,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -915,7 +1226,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1013,7 +1324,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1103,7 +1414,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1181,7 +1492,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1262,7 +1573,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1333,7 +1644,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1423,7 +1734,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1522,7 +1833,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1612,7 +1923,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1712,7 +2023,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1802,7 +2113,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {
@@ -1900,7 +2211,7 @@
                 }
               }
             },
-            "description": "Unprocessable Entity"
+            "description": "Unprocessable Content"
           },
           "502": {
             "content": {

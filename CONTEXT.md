@@ -12,6 +12,10 @@ _Avoid_: Sabor, ingrediente
 Un producto conservado en el catálogo que no puede seleccionarse en ventas nuevas. Puede reactivarse y sigue siendo reconocible en ventas anteriores.
 _Avoid_: Producto eliminado
 
+**Categoría**:
+La clasificación obligatoria y editable que agrupa Productos para encontrarlos rápidamente al preparar una Venta. Cada Producto pertenece a una única Categoría; varias Categorías pueden seleccionarse a la vez como filtro y, sin selección, se muestran todos los Productos activos.
+_Avoid_: Etiqueta, categoría múltiple por Producto
+
 **Imagen de producto**:
 Una representación visual opcional de un producto. Cuando no se proporciona una imagen propia, el producto se presenta con una imagen genérica.
 _Avoid_: Imagen obligatoria, galería

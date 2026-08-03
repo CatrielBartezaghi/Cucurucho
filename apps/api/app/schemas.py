@@ -44,6 +44,7 @@ class CurrentSessionOutput(BaseModel):
 class ProductInput(BaseModel):
     name: str = Field(max_length=150)
     price: Decimal
+    category_id: uuid.UUID
 
     @field_validator("name")
     @classmethod
@@ -59,6 +60,22 @@ class ProductInput(BaseModel):
         return validate_money(value)
 
 
+class CategoryInput(BaseModel):
+    name: str = Field(max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def valid_name(cls, value: str) -> str:
+        return validate_non_empty_text(value, "El nombre de la Categoría es obligatorio.")
+
+
+class CategoryOutput(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    name: str
+
+
 class ProductOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -67,6 +84,7 @@ class ProductOutput(BaseModel):
     price: str
     active: bool
     image_url: str | None
+    category: CategoryOutput
 
 
 class SaleDetailInput(BaseModel):

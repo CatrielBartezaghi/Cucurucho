@@ -42,6 +42,17 @@ class BrowserSession(Base):
     user: Mapped[User] = relationship()
 
 
+class Category(Base):
+    __tablename__ = "categories"
+    __table_args__ = (UniqueConstraint("normalized_name", name="uq_categories_normalized_name"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(100))
+    normalized_name: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class Product(Base):
     __tablename__ = "products"
     __table_args__ = (
@@ -50,6 +61,9 @@ class Product(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("categories.id", ondelete="RESTRICT"), index=True
+    )
     name: Mapped[str] = mapped_column(String(150))
     normalized_name: Mapped[str] = mapped_column(String(150))
     price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
@@ -58,6 +72,7 @@ class Product(Base):
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    category: Mapped[Category] = relationship()
 
 
 class Sale(Base):
@@ -102,4 +117,3 @@ class SaleDetail(Base):
     quantity: Mapped[int] = mapped_column(Integer)
     position: Mapped[int] = mapped_column(Integer)
     sale: Mapped[Sale] = relationship(back_populates="details")
-

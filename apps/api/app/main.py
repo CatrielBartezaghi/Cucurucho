@@ -14,9 +14,11 @@ from starlette.middleware.base import RequestResponseEndpoint
 from .config import Settings, get_settings
 from .db import build_session_factory
 from .errors import install_error_handlers
-from .models import Product, Sale
+from .models import Category, Product, Sale
 from .schemas import (
     AnnulmentInput,
+    CategoryInput,
+    CategoryOutput,
     CurrentSessionOutput,
     ErrorOutput,
     LoginInput,
@@ -44,7 +46,12 @@ def product_output(product: Product) -> ProductOutput:
         price=money(product.price),
         active=product.active,
         image_url=product.image_url,
+        category=category_output(product.category),
     )
+
+
+def category_output(category: Category) -> CategoryOutput:
+    return CategoryOutput(id=category.id, name=category.name)
 
 
 def sale_output(sale: Sale) -> SaleOutput:
@@ -172,7 +179,31 @@ def create_app(
         _user: CurrentUser = Depends(authenticated_user),
         db: Session = Depends(get_db),
     ) -> list[ProductOutput]:
-        return [product_output(item) for item in catalog.list(db, incluir_inactivos)]
+        return [product_output(item) for item in catalog.list_products(db, incluir_inactivos)]
+
+    @app.get("/api/categorias", response_model=list[CategoryOutput])
+    def list_categories(
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> list[CategoryOutput]:
+        return [category_output(item) for item in catalog.list_categories(db)]
+
+    @app.post("/api/categorias", response_model=CategoryOutput, status_code=201)
+    def create_category(
+        payload: CategoryInput,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> CategoryOutput:
+        return category_output(catalog.create_category(db, payload))
+
+    @app.put("/api/categorias/{category_id}", response_model=CategoryOutput)
+    def update_category(
+        category_id: uuid.UUID,
+        payload: CategoryInput,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> CategoryOutput:
+        return category_output(catalog.update_category(db, category_id, payload))
 
     @app.post("/api/productos", response_model=ProductOutput, status_code=201)
     def create_product(

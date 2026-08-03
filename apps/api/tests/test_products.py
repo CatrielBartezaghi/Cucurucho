@@ -10,6 +10,63 @@ PNG_IMAGE = b"\x89PNG\r\n\x1a\nimage"
 WEBP_IMAGE = b"RIFF\x05\x00\x00\x00WEBPimage"
 
 
+def test_categories_are_seeded_and_product_category_is_required_and_editable(
+    client: TestClient, login
+) -> None:
+    login()
+    categories = client.get("/api/categorias")
+    assert categories.status_code == 200
+    assert [category["name"] for category in categories.json()] == ["Envasado", "Helado", "Otros"]
+
+    missing_category = client.post(
+        "/api/productos", json={"name": "Cuarto", "price": "4500.00"}
+    )
+    assert missing_category.status_code == 422
+
+    envasado = next(
+        category for category in categories.json() if category["name"] == "Envasado"
+    )
+    product = client.post(
+        "/api/productos",
+        json={"name": "Gaseosa", "price": "2000.00", "category_id": envasado["id"]},
+    )
+    assert product.status_code == 201
+    assert product.json()["category"] == envasado
+
+    missing_category_on_update = client.put(
+        f"/api/productos/{product.json()['id']}",
+        json={"name": "Gaseosa", "price": "2200.00"},
+    )
+    assert missing_category_on_update.status_code == 422
+
+    otros = next(category for category in categories.json() if category["name"] == "Otros")
+    updated = client.put(
+        f"/api/productos/{product.json()['id']}",
+        json={"name": "Gaseosa", "price": "2200.00", "category_id": otros["id"]},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["category"] == otros
+
+
+def test_category_can_be_created_and_renamed(client: TestClient, login) -> None:
+    login()
+    created = client.post("/api/categorias", json={"name": "Postres"})
+    assert created.status_code == 201
+    assert created.json()["name"] == "Postres"
+
+    renamed = client.put(
+        f"/api/categorias/{created.json()['id']}", json={"name": "Pastelería"}
+    )
+    assert renamed.status_code == 200
+    assert renamed.json()["name"] == "Pastelería"
+    assert [category["name"] for category in client.get("/api/categorias").json()] == [
+        "Envasado",
+        "Helado",
+        "Otros",
+        "Pastelería",
+    ]
+
+
 def test_product_can_be_edited_deactivated_and_reactivated(
     client: TestClient, login, product_factory
 ):
@@ -17,7 +74,12 @@ def test_product_can_be_edited_deactivated_and_reactivated(
     product = product_factory("Palito", "500.00")
 
     updated = client.put(
-        f"/api/productos/{product['id']}", json={"name": "Palito bombón", "price": "750.50"}
+        f"/api/productos/{product['id']}",
+        json={
+            "name": "Palito bombón",
+            "price": "750.50",
+            "category_id": product["category"]["id"],
+        },
     )
     assert updated.status_code == 200
     assert updated.json()["price"] == "750.50"

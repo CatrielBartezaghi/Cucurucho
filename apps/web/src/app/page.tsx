@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiError, SessionExpiredError, api, buenosAiresToday, Product, Sale, SalesByDay } from "@/lib/api";
+import { ApiError, Category, SessionExpiredError, api, buenosAiresToday, Product, Sale, SalesByDay } from "@/lib/api";
 import { Catalog } from "@/components/catalog";
 import { RegisterSale } from "@/components/register-sale";
 import { SalesHistory } from "@/components/sales-history";
@@ -14,6 +14,7 @@ export default function HomePage() {
   const [username, setUsername] = useState("");
   const [section, setSection] = useState<Section>("sale");
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [history, setHistory] = useState<SalesByDay | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [day, setDay] = useState(buenosAiresToday());
@@ -37,6 +38,16 @@ export default function HomePage() {
     }
   }
 
+  async function loadCatalog() {
+    try {
+      const [catalog, productCategories] = await Promise.all([api.products(true), api.categories()]);
+      setProducts(catalog);
+      setCategories(productCategories);
+    } catch (reason) {
+      handleError(reason);
+    }
+  }
+
   async function loadHistory(selectedDay = day) {
     const request = ++historyRequest.current;
     setHistoryLoading(true);
@@ -52,10 +63,11 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    Promise.all([api.me(), api.products(), api.sales(day)])
-      .then(([user, catalog, sales]) => {
+    Promise.all([api.me(), api.products(), api.categories(), api.sales(day)])
+      .then(([user, catalog, productCategories, sales]) => {
         setUsername(user.username);
         setProducts(catalog);
+        setCategories(productCategories);
         setHistory(sales);
       })
       .catch(handleError)
@@ -89,15 +101,15 @@ export default function HomePage() {
 
       <nav className="tabs" aria-label="Secciones principales">
         <button aria-current={section === "sale" ? "page" : undefined} onClick={() => { setSection("sale"); loadProducts(false); }}>Nueva venta</button>
-        <button aria-current={section === "catalog" ? "page" : undefined} onClick={() => { setSection("catalog"); loadProducts(true); }}>Productos</button>
+        <button aria-current={section === "catalog" ? "page" : undefined} onClick={() => { setSection("catalog"); loadCatalog(); }}>Productos</button>
         <button aria-current={section === "history" ? "page" : undefined} onClick={() => { setSection("history"); loadHistory(); }}>Ventas del día</button>
       </nav>
 
       {error && <p className="banner error" role="alert">{error}<button onClick={() => setError("")} aria-label="Cerrar error">×</button></p>}
 
       <main className="content">
-        {section === "sale" && <RegisterSale products={products.filter((product) => product.active)} onConfirmed={(sale) => { setDay(sale.sale_day); loadHistory(sale.sale_day); }} onError={handleError} />}
-        {section === "catalog" && <Catalog products={products} onRefresh={() => loadProducts(true)} onError={handleError} />}
+        {section === "sale" && <RegisterSale products={products.filter((product) => product.active)} categories={categories} onConfirmed={(sale) => { setDay(sale.sale_day); loadHistory(sale.sale_day); }} onError={handleError} />}
+        {section === "catalog" && <Catalog products={products} categories={categories} onRefresh={loadCatalog} onError={handleError} />}
         {section === "history" && <SalesHistory day={day} history={history} loading={historyLoading} onDayChange={(value) => { setDay(value); loadHistory(value); }} onRefresh={() => loadHistory()} onError={handleError} />}
       </main>
     </div>

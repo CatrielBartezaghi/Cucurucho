@@ -119,7 +119,13 @@ def login(client: TestClient) -> Callable[[], None]:
 @pytest.fixture()
 def product_factory(client: TestClient) -> Callable[[str, str], dict[str, object]]:
     def create(name: str, price: str) -> dict[str, object]:
-        response = client.post("/api/productos", json={"name": name, "price": price})
+        categories = client.get("/api/categorias")
+        assert categories.status_code == 200, categories.text
+        helado = next(item for item in categories.json() if item["name"] == "Helado")
+        response = client.post(
+            "/api/productos",
+            json={"name": name, "price": price, "category_id": helado["id"]},
+        )
         assert response.status_code == 201, response.text
         return response.json()
 

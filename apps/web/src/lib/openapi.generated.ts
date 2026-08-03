@@ -4,6 +4,41 @@
  */
 
 export interface paths {
+    "/api/categorias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Categories */
+        get: operations["list_categories_api_categorias_get"];
+        put?: never;
+        /** Create Category */
+        post: operations["create_category_api_categorias_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categorias/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Category */
+        put: operations["update_category_api_categorias__category_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -253,6 +288,21 @@ export interface components {
             /** Image */
             image: string;
         };
+        /** CategoryInput */
+        CategoryInput: {
+            /** Name */
+            name: string;
+        };
+        /** CategoryOutput */
+        CategoryOutput: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** CurrentSessionOutput */
         CurrentSessionOutput: {
             /**
@@ -288,6 +338,11 @@ export interface components {
         };
         /** ProductInput */
         ProductInput: {
+            /**
+             * Category Id
+             * Format: uuid
+             */
+            category_id: string;
             /** Name */
             name: string;
             /** Price */
@@ -297,6 +352,7 @@ export interface components {
         ProductOutput: {
             /** Active */
             active: boolean;
+            category: components["schemas"]["CategoryOutput"];
             /**
              * Id
              * Format: uuid
@@ -401,6 +457,238 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_categories_api_categorias_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOutput"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    create_category_api_categorias_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
+    update_category_api_categorias__category_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOutput"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOutput"];
+                };
+            };
+        };
+    };
     health_api_health_get: {
         parameters: {
             query?: never;
@@ -457,7 +745,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -533,7 +821,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -611,7 +899,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -691,7 +979,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -767,7 +1055,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -847,7 +1135,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -923,7 +1211,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -999,7 +1287,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1073,7 +1361,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1149,7 +1437,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1221,7 +1509,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1297,7 +1585,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1377,7 +1665,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1453,7 +1741,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1533,7 +1821,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1613,7 +1901,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -1689,7 +1977,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorOutput"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Unprocessable Content */
             422: {
                 headers: {
                     [name: string]: unknown;

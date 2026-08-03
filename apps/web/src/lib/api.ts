@@ -3,6 +3,7 @@ import type { components } from "./openapi.generated";
 type Schemas = components["schemas"];
 type LoginInput = Schemas["LoginInput"];
 type ProductInput = Schemas["ProductInput"];
+type CategoryInput = Schemas["CategoryInput"];
 type SaleInput = Schemas["SaleInput"];
 type ObservationInput = Schemas["ObservationInput"];
 type AnnulmentInput = Schemas["AnnulmentInput"];
@@ -18,6 +19,7 @@ export class ApiError extends Error {
 
 export class SessionExpiredError extends ApiError {}
 
+export type Category = Schemas["CategoryOutput"];
 export type Product = Schemas["ProductOutput"];
 export type SaleDetail = Schemas["SaleDetailOutput"];
 export type Sale = Schemas["SaleOutput"];
@@ -51,15 +53,35 @@ export const api = {
   me: () => request<Schemas["CurrentSessionOutput"]>("/api/sesion/actual"),
   products: (includeInactive = false) =>
     request<Product[]>(`/api/productos${includeInactive ? "?incluir_inactivos=true" : ""}`),
-  createProduct: (name: ProductInput["name"], price: ProductInput["price"]) =>
+  categories: () => request<Category[]>("/api/categorias"),
+  createCategory: (name: CategoryInput["name"]) =>
+    request<Category>("/api/categorias", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+  updateCategory: (id: string, name: CategoryInput["name"]) =>
+    request<Category>(`/api/categorias/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ name }),
+    }),
+  createProduct: (
+    name: ProductInput["name"],
+    price: ProductInput["price"],
+    categoryId: string,
+  ) =>
     request<Product>("/api/productos", {
       method: "POST",
-      body: JSON.stringify({ name, price }),
+      body: JSON.stringify({ name, price, category_id: categoryId }),
     }),
-  updateProduct: (id: string, name: ProductInput["name"], price: ProductInput["price"]) =>
+  updateProduct: (
+    id: string,
+    name: ProductInput["name"],
+    price: ProductInput["price"],
+    categoryId: string,
+  ) =>
     request<Product>(`/api/productos/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ name, price }),
+      body: JSON.stringify({ name, price, category_id: categoryId }),
     }),
   setProductActive: (id: string, active: boolean) =>
     request<Product>(`/api/productos/${id}/${active ? "activar" : "inactivar"}`, {

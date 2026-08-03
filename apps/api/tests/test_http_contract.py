@@ -80,12 +80,26 @@ def test_api_rejects_unauthenticated_access(client):
 
 def test_product_names_are_unicode_normalized_and_prices_are_exact(client, login, product_factory):
     login()
-    product_factory("  Café helado  ", "10.10")
-    duplicate = client.post("/api/productos", json={"name": "CAFE HELADO", "price": "10.20"})
+    product = product_factory("  Café helado  ", "10.10")
+    duplicate = client.post(
+        "/api/productos",
+        json={
+            "name": "CAFE HELADO",
+            "price": "10.20",
+            "category_id": product["category"]["id"],
+        },
+    )
     assert duplicate.status_code == 409
     assert duplicate.json()["code"] == "product_name_conflict"
 
-    invalid = client.post("/api/productos", json={"name": "Torta", "price": "1.001"})
+    invalid = client.post(
+        "/api/productos",
+        json={
+            "name": "Torta",
+            "price": "1.001",
+            "category_id": product["category"]["id"],
+        },
+    )
     assert invalid.status_code == 422
     assert invalid.json()["field_errors"]["price"]
 
