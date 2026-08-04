@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import SecretStr
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,10 +18,15 @@ class Settings(BaseSettings):
     argon2_time_cost: int = 3
     argon2_memory_cost: int = 65536
     argon2_parallelism: int = 4
-    vercel_blob_read_write_token: SecretStr | None = None
+    vercel_blob_read_write_token: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "BLOB_READ_WRITE_TOKEN",
+            "VERCEL_BLOB_READ_WRITE_TOKEN",
+        ),
+    )
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
