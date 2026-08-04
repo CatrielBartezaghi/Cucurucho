@@ -21,6 +21,10 @@ export function SalesHistory({ day, history, loading = false, onDayChange, onRef
   async function annul(sale: Sale) {
     const reason = window.prompt("Motivo de anulación", annulmentDrafts[sale.id] ?? "");
     if (reason === null) return;
+    if (!reason.trim()) {
+      window.alert("Ingresá un motivo de anulación.");
+      return;
+    }
     setAnnulmentDrafts((current) => ({ ...current, [sale.id]: reason }));
     if (!window.confirm("La Anulación es irreversible. ¿Confirmás que querés anular esta Venta?")) return;
     if (await action(sale.id, () => api.annulSale(sale.id, reason))) {

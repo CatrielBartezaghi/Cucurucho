@@ -30,6 +30,23 @@ it("cancela una Anulación antes de llamar al contrato HTTP", async () => {
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
+it("avisa y no envía la Anulación cuando el Motivo está vacío", async () => {
+  vi.spyOn(window, "prompt").mockReturnValue("   ");
+  const alert = vi.spyOn(window, "alert").mockImplementation(() => undefined);
+  const confirm = vi.spyOn(window, "confirm");
+  const fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
+  const user = userEvent.setup();
+  render(<SalesHistory day="2026-08-01" history={{ day: "2026-08-01", total_sold: "1000.00", sales: [sale] }} onDayChange={vi.fn()} onRefresh={vi.fn()} onError={vi.fn()} />);
+
+  await user.click(screen.getByText("Efectivo").closest("summary")!);
+  await user.click(screen.getByRole("button", { name: "Anular Venta" }));
+
+  expect(alert).toHaveBeenCalledWith("Ingresá un motivo de anulación.");
+  expect(confirm).not.toHaveBeenCalled();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
 it("muestra el Precio de venta unitario conservado en cada Detalle de venta", async () => {
   const user = userEvent.setup();
   render(<SalesHistory day="2026-08-01" history={{ day: "2026-08-01", total_sold: "1000.00", sales: [sale] }} onDayChange={vi.fn()} onRefresh={vi.fn()} onError={vi.fn()} />);
