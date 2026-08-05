@@ -67,6 +67,10 @@ class VercelBlobStorage:
         oidc_token: str | None = None,
         store_id: str | None = None,
     ) -> None:
+        self._token: str
+        self._store_id: str | None
+        self._uses_oidc: bool
+
         normalized_oidc_token = oidc_token.strip() if oidc_token else ""
         normalized_store_id = _normalize_store_id(store_id) if store_id else ""
         if normalized_oidc_token and normalized_store_id:
