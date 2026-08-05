@@ -34,8 +34,7 @@ def blob_smoke_test() -> dict[str, object]:
     except Exception as exc:
         return {
             "status": "error",
-            "token_detected": settings.blob_read_write_token is not None
-            or settings.vercel_blob_read_write_token is not None,
+            "token_detected": settings.vercel_blob_read_write_token is not None,
             "error_type": type(exc).__name__,
             "message": str(exc),
         }
