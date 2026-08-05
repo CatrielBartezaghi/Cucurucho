@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     argon2_time_cost: int = 3
     argon2_memory_cost: int = 65536
     argon2_parallelism: int = 4
+    blob_store_id: str | None = Field(default=None, validation_alias="BLOB_STORE_ID")
     vercel_blob_read_write_token: SecretStr | None = Field(
         default=None,
         validation_alias=AliasChoices(
