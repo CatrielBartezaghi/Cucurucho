@@ -114,5 +114,5 @@ it("muestra kilos aproximados y conserva el importe final cobrado", async () => 
   await user.click(screen.getByText("Efectivo").closest("summary")!);
   expect(screen.getByText("≈ 1.333 kg × Torta")).toBeInTheDocument();
   expect(screen.getByText("$ 12.000,00 / kg")).toBeInTheDocument();
-  expect(screen.getByText("$ 16.000,00")).toBeInTheDocument();
+  expect(screen.getAllByText("$ 16.000,00").length).toBeGreaterThanOrEqual(2);
 });
