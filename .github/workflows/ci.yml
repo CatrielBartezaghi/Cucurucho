@@ -41,7 +41,9 @@ jobs:
       - run: python -m app.export_openapi ../../apps/web/src/lib/openapi.json
       - run: git diff --exit-code -- ../../apps/web/src/lib/openapi.json
 
-  frontend:
+  # Mantiene el audit como chequeo bloqueante, pero separa la validación funcional
+  # para que las alertas de dependencias preexistentes no oculten errores del cambio.
+  security:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +51,14 @@ jobs:
         with: { node-version: "22", cache: npm }
       - run: npm ci
       - run: npm audit
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm }
+      - run: npm ci
       - run: npm run contract:check --workspace apps/web
       - run: npm run typecheck
       - run: npm test
