@@ -13,7 +13,7 @@ PaymentMethod = Literal["cash", "transfer", "debit_card", "credit_card", "qr"]
 
 def validate_money(value: Decimal) -> Decimal:
     quantized = value.quantize(Decimal("0.01"))
-    if value <= 0 or value != quantized:
+    if not value.is_finite() or value <= 0 or value != quantized:
         raise ValueError("Debe ser un importe positivo con hasta dos decimales.")
     return quantized
 
