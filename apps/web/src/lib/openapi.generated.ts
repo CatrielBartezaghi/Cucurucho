@@ -408,8 +408,6 @@ export interface components {
             product_id: string;
             /** Product Name */
             product_name: string;
-            /** Pricing Type */
-            pricing_type: string;
             /** Quantity */
             quantity: number;
             /** Unit Price */
