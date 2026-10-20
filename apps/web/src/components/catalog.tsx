@@ -13,6 +13,7 @@ interface Props {
 export function Catalog({ products, categories, onRefresh, onError }: Props) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [pricingType, setPricingType] = useState<"unit" | "weight">("unit");
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,9 +22,10 @@ export function Catalog({ products, categories, onRefresh, onError }: Props) {
     event.preventDefault();
     setBusy(true);
     try {
-      await api.createProduct(name, price, categoryId);
+      await api.createProduct(name, price, categoryId, pricingType);
       setName("");
       setPrice("");
+      setPricingType("unit");
       await onRefresh();
     } catch (reason) {
       onError(reason);
@@ -35,11 +37,26 @@ export function Catalog({ products, categories, onRefresh, onError }: Props) {
   async function edit(product: Product) {
     const nextName = window.prompt("Nombre del Producto", product.name);
     if (nextName === null) return;
-    const nextPrice = window.prompt("Precio en pesos", product.price);
+    const nextPrice = window.prompt(
+      product.pricing_type === "weight" ? "Precio por kilogramo en pesos" : "Precio en pesos",
+      product.price,
+    );
     if (nextPrice === null) return;
+    const nextType = window.prompt(
+      "Forma de venta: unidad o kg", product.pricing_type === "weight" ? "kg" : "unidad",
+    );
+    if (nextType === null) return;
+    const normalizedType = nextType.trim().toLowerCase();
+    if (!["kg", "unidad"].includes(normalizedType)) {
+      onError(new Error("Ingresá 'unidad' o 'kg' como forma de venta."));
+      return;
+    }
     setBusy(true);
     try {
-      await api.updateProduct(product.id, nextName, nextPrice, product.category.id);
+      await api.updateProduct(
+        product.id, nextName, nextPrice, product.category.id,
+        normalizedType === "kg" ? "weight" : "unit",
+      );
       await onRefresh();
     } catch (reason) {
       onError(reason);
@@ -64,7 +81,9 @@ export function Catalog({ products, categories, onRefresh, onError }: Props) {
 
   async function assignCategory(product: Product, nextCategoryId: string) {
     await action(() =>
-      api.updateProduct(product.id, product.name, product.price, nextCategoryId),
+      api.updateProduct(
+        product.id, product.name, product.price, nextCategoryId, product.pricing_type,
+      ),
     );
   }
 
@@ -114,7 +133,8 @@ export function Catalog({ products, categories, onRefresh, onError }: Props) {
       </div>
       <form className="create-product" onSubmit={create}>
         <label>Nombre<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
-        <label>Precio<input value={price} onChange={(event) => setPrice(event.target.value)} inputMode="decimal" placeholder="0,00" required /></label>
+        <label>Precio{pricingType === "weight" ? " por kilo" : ""}<input value={price} onChange={(event) => setPrice(event.target.value)} inputMode="decimal" placeholder="0,00" required /></label>
+        <label>Venta por<select value={pricingType} onChange={(event) => setPricingType(event.target.value as "unit" | "weight")}><option value="unit">Unidad</option><option value="weight">Kilogramo</option></select></label>
         <label>Categoría<select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} required><option value="">Elegí una</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
         <button className="primary" disabled={busy}>Agregar Producto</button>
       </form>
@@ -126,7 +146,7 @@ export function Catalog({ products, categories, onRefresh, onError }: Props) {
             <img src={product.image_url ?? "/product-placeholder.svg"} alt={product.image_url ? `Imagen de ${product.name}` : `Imagen genérica de ${product.name}`} />
             <div className="product-body">
               <div className="product-title"><h3>{product.name}</h3><span>{product.active ? "Activo" : "Inactivo"}</span></div>
-              <strong>{pesos(product.price)}</strong>
+              <strong>{pesos(product.price)}{product.pricing_type === "weight" ? " / kg" : ""}</strong>
               <label>Categoría<select value={product.category.id} disabled={busy} onChange={(event) => assignCategory(product, event.target.value)}>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
               <div className="row-actions">
                 <button className="ghost" disabled={busy} onClick={() => edit(product)}>Editar</button>
