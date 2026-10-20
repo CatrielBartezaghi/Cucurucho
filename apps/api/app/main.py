@@ -44,6 +44,7 @@ def product_output(product: Product) -> ProductOutput:
         id=product.id,
         name=product.name,
         price=money(product.price),
+        pricing_type=product.pricing_type,
         active=product.active,
         image_url=product.image_url,
         category=category_output(product.category),
@@ -74,6 +75,12 @@ def sale_output(sale: Sale) -> SaleOutput:
                     "product_id": detail.product_id,
                     "product_name": detail.product_name,
                     "unit_price": money(detail.unit_price),
+                    "pricing_type": detail.pricing_type,
+                    "weight_kg": (
+                        f"{detail.weight_kg:.3f}" if detail.weight_kg is not None else None
+                    ),
+                    "entry_method": detail.entry_method,
+                    "line_total": money(detail.line_total),
                     "quantity": detail.quantity,
                     "position": detail.position,
                 }
