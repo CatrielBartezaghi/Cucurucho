@@ -351,7 +351,7 @@ export interface components {
              * Pricing Type
              * @default unit
              */
-            pricing_type?: string;
+            pricing_type: string;
         };
         /** ProductOutput */
         ProductOutput: {
@@ -399,6 +399,8 @@ export interface components {
             line_total: string;
             /** Position */
             position: number;
+            /** Pricing Type */
+            pricing_type: string;
             /**
              * Product Id
              * Format: uuid
