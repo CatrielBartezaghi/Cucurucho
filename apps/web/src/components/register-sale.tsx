@@ -53,8 +53,8 @@ export function RegisterSale({ products, categories, onConfirmed, onError }: Pro
   }, [cart]);
   const validCart = cart.every((line) => line.product.pricing_type !== "weight" || (
     parseDecimal(line.weightKg) > 0 && parseDecimal(line.amount) > 0 &&
-    /^\\d+(?:[.,]\\d{1,3})?$/.test(line.weightKg) &&
-    /^\\d+(?:[.,]\\d{1,2})?$/.test(line.amount)
+    /^\d+(?:[.,]\d{1,3})?$/.test(line.weightKg) &&
+    /^\d+(?:[.,]\d{1,2})?$/.test(line.amount)
   ));
   const selectionLocked = busy || state === "uncertain";
 
