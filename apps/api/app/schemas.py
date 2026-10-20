@@ -12,8 +12,10 @@ PaymentMethod = Literal["cash", "transfer", "debit_card", "credit_card", "qr"]
 
 
 def validate_money(value: Decimal) -> Decimal:
+    if not value.is_finite() or value <= 0 or value >= Decimal("10000000000"):
+        raise ValueError("Debe ser un importe positivo con hasta dos decimales.")
     quantized = value.quantize(Decimal("0.01"))
-    if value <= 0 or value != quantized:
+    if value != quantized:
         raise ValueError("Debe ser un importe positivo con hasta dos decimales.")
     return quantized
 
@@ -45,6 +47,7 @@ class ProductInput(BaseModel):
     name: str = Field(max_length=150)
     price: Decimal
     category_id: uuid.UUID
+    pricing_type: str = "unit"
 
     @field_validator("name")
     @classmethod
@@ -58,6 +61,14 @@ class ProductInput(BaseModel):
     @classmethod
     def valid_price(cls, value: Decimal) -> Decimal:
         return validate_money(value)
+
+
+    @field_validator("pricing_type")
+    @classmethod
+    def valid_pricing_type(cls, value: str) -> str:
+        if value not in {"unit", "weight"}:
+            raise ValueError("El tipo de precio debe ser por unidad o por kilo.")
+        return value
 
 
 class CategoryInput(BaseModel):
@@ -82,6 +93,7 @@ class ProductOutput(BaseModel):
     id: uuid.UUID
     name: str
     price: str
+    pricing_type: str
     active: bool
     image_url: str | None
     category: CategoryOutput
@@ -90,6 +102,24 @@ class ProductOutput(BaseModel):
 class SaleDetailInput(BaseModel):
     product_id: uuid.UUID
     quantity: int = Field(gt=0)
+    weight_kg: Decimal | None = None
+    amount: Decimal | None = None
+
+    @field_validator("weight_kg")
+    @classmethod
+    def valid_weight(cls, value: Decimal | None) -> Decimal | None:
+        if value is None:
+            return None
+        if not value.is_finite() or value <= 0 or value != value.quantize(Decimal("0.001")):
+            raise ValueError("El peso debe ser positivo y tener hasta tres decimales.")
+        return value
+
+    @field_validator("amount")
+    @classmethod
+    def valid_amount(cls, value: Decimal | None) -> Decimal | None:
+        if value is None:
+            return None
+        return validate_money(value)
 
 
 class SaleInput(BaseModel):
@@ -125,6 +155,10 @@ class SaleDetailOutput(BaseModel):
     product_id: uuid.UUID
     product_name: str
     unit_price: str
+    pricing_type: str
+    weight_kg: str | None
+    entry_method: str | None
+    line_total: str
     quantity: int
     position: int
 

@@ -8,6 +8,7 @@ const product = {
   id: "p1",
   name: "Cucurucho",
   price: "1200.50",
+  pricing_type: "unit",
   active: true,
   image_url: null,
   category: helado,
@@ -101,4 +102,49 @@ describe("armado y confirmación de una Venta", () => {
       new Headers(fetchMock.mock.calls[1][1].headers).get("Idempotency-Key"),
     );
   });
+});
+
+
+it("calcula el importe desde el peso y confirma con el dato de origen", async () => {
+  const torta = { ...product, id: "t1", name: "Torta", price: "12000.00", pricing_type: "weight" };
+  const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    id: "s3", payment_method: "cash", total: "15000.00", sold_at: "2026-08-01T15:00:00Z",
+    sale_day: "2026-08-01", observation: null, annulment: null, details: [],
+  }), { status: 201, headers: { "Content-Type": "application/json" } }));
+  vi.stubGlobal("fetch", fetchMock);
+  const user = userEvent.setup();
+  render(<RegisterSale products={[torta]} onConfirmed={vi.fn()} onError={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "Agregar Torta" }));
+  await user.type(screen.getByLabelText("Peso en kg de Torta"), "1.250");
+  expect(screen.getByLabelText("Importe de Torta")).toHaveValue("15000.00");
+  await user.click(screen.getByLabelText("Efectivo"));
+  await user.click(screen.getByRole("button", { name: "Confirmar Venta" }));
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+  const request = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+  expect(request.details).toEqual([{ product_id: "t1", quantity: 1, weight_kg: "1.250" }]);
+});
+
+it("calcula el peso aproximado desde el importe sin modificar lo cobrado", async () => {
+  const torta = { ...product, id: "t2", name: "Torta", price: "12000.00", pricing_type: "weight" };
+  const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    id: "s4", payment_method: "qr", total: "16000.00", sold_at: "2026-08-01T15:00:00Z",
+    sale_day: "2026-08-01", observation: null, annulment: null, details: [],
+  }), { status: 201, headers: { "Content-Type": "application/json" } }));
+  vi.stubGlobal("fetch", fetchMock);
+  const user = userEvent.setup();
+  render(<RegisterSale products={[torta]} onConfirmed={vi.fn()} onError={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "Agregar Torta" }));
+  expect(screen.getByRole("button", { name: "Confirmar Venta" })).toBeDisabled();
+  await user.type(screen.getByLabelText("Importe de Torta"), "16000.00");
+  expect(screen.getByLabelText("Peso en kg de Torta")).toHaveValue("1.333");
+  expect(screen.getByText("Peso estimado según el importe.")).toBeInTheDocument();
+  await user.click(screen.getByLabelText("QR"));
+  await user.click(screen.getByRole("button", { name: "Confirmar Venta" }));
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+  const request = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+  expect(request.details).toEqual([{ product_id: "t2", quantity: 1, amount: "16000.00" }]);
 });

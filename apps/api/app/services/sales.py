@@ -5,7 +5,7 @@ import json
 import uuid
 from collections.abc import Callable
 from datetime import UTC, date, datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -63,12 +63,51 @@ class Sales:
         )
         for position, requested in enumerate(data.details):
             product = products[requested.product_id]
-            sale.total += product.price * requested.quantity
+            weight_kg: Decimal | None = None
+            entry_method: str | None = None
+            if product.pricing_type == "weight":
+                if requested.quantity != 1 or (
+                    (requested.weight_kg is None) == (requested.amount is None)
+                ):
+                    raise ApiError(
+                        422, "invalid_weight_sale",
+                        "Ingresá el peso o el importe, pero no ambos.",
+                        {"details": "Cada torta se registra en un detalle separado."},
+                    )
+                if requested.weight_kg is not None:
+                    weight_kg = requested.weight_kg
+                    entry_method = "weight"
+                    line_total = (product.price * weight_kg).quantize(
+                        Decimal("0.01"), rounding=ROUND_HALF_UP
+                    )
+                else:
+                    assert requested.amount is not None
+                    line_total = requested.amount
+                    entry_method = "amount"
+                    weight_kg = (line_total / product.price).quantize(
+                        Decimal("0.001"), rounding=ROUND_HALF_UP
+                    )
+                if weight_kg <= 0 or line_total <= 0:
+                    raise ApiError(
+                        422, "invalid_weight_sale", "El peso y el importe deben ser positivos."
+                    )
+            else:
+                if requested.weight_kg is not None or requested.amount is not None:
+                    raise ApiError(
+                        422, "invalid_unit_sale",
+                        "Los productos por unidad no admiten peso ni importe manual.",
+                    )
+                line_total = product.price * requested.quantity
+            sale.total += line_total
             sale.details.append(
                 SaleDetail(
                     product_id=product.id,
                     product_name=product.name,
                     unit_price=product.price,
+                    pricing_type=product.pricing_type,
+                    weight_kg=weight_kg,
+                    entry_method=entry_method,
+                    line_total=line_total,
                     quantity=requested.quantity,
                     position=position,
                 )
@@ -131,7 +170,11 @@ class Sales:
 
     @staticmethod
     def _fingerprint(data: SaleInput) -> str:
-        canonical = json.dumps(data.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
+        canonical = json.dumps(
+            data.model_dump(mode="json", exclude_none=True),
+            sort_keys=True,
+            separators=(",", ":"),
+        )
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     @staticmethod

@@ -218,3 +218,103 @@ def test_sale_day_uses_buenos_aires_at_both_sides_of_utc_midnight(
         assert second["sale_day"] == "2026-08-02"
         assert len(fixed_client.get("/api/ventas?dia=2026-08-01").json()["sales"]) == 1
         assert len(fixed_client.get("/api/ventas?dia=2026-08-02").json()["sales"]) == 1
+
+
+def create_weighted_product(client: TestClient) -> dict[str, object]:
+    helado = next(
+        item for item in client.get("/api/categorias").json()
+        if item["name"] == "Helado"
+    )
+    response = client.post(
+        "/api/productos",
+        json={
+            "name": "Torta helada", "price": "12000.00",
+            "category_id": helado["id"], "pricing_type": "weight",
+        },
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_weight_sales_can_be_entered_by_weight_or_final_amount(
+    client: TestClient, login, product_factory
+) -> None:
+    login()
+    torta = create_weighted_product(client)
+    palito = product_factory("Palito", "1000.00")
+    sold = client.post(
+        "/api/ventas",
+        headers={"Idempotency-Key": "mixed-weight-modes"},
+        json={
+            "payment_method": "cash",
+            "details": [
+                {"product_id": torta["id"], "quantity": 1, "weight_kg": "1.250"},
+                {"product_id": torta["id"], "quantity": 1, "amount": "16000.00"},
+                {"product_id": palito["id"], "quantity": 2},
+            ],
+        },
+    )
+    assert sold.status_code == 201, sold.text
+    sale = sold.json()
+    assert sale["total"] == "33000.00"
+    first, second, third = sale["details"]
+    assert first["pricing_type"] == "weight"
+    assert first["weight_kg"] == "1.250"
+    assert first["entry_method"] == "weight"
+    assert first["line_total"] == "15000.00"
+    assert second["weight_kg"] == "1.333"
+    assert second["entry_method"] == "amount"
+    assert second["line_total"] == "16000.00"
+    assert third["pricing_type"] == "unit"
+    assert third["weight_kg"] is None
+    assert third["line_total"] == "2000.00"
+    assert client.get(f"/api/ventas/{sale['id']}").json()["total"] == "33000.00"
+
+    # El cambio de tarifa no modifica el precio ni el tipo histórico.
+    client.put(
+        f"/api/productos/{torta['id']}",
+        json={
+            "name": "Torta nueva", "price": "15000.00",
+            "category_id": torta["category"]["id"], "pricing_type": "unit",
+        },
+    )
+    old = client.get(f"/api/ventas/{sale['id']}").json()
+    assert old["details"][0]["product_name"] == "Torta helada"
+    assert old["details"][0]["unit_price"] == "12000.00"
+    assert old["details"][0]["pricing_type"] == "weight"
+
+
+def test_weight_sales_validate_input_modes(client: TestClient, login, product_factory) -> None:
+    login()
+    torta = create_weighted_product(client)
+    palito = product_factory("Palito", "1000.00")
+    invalid_details = [
+        {"product_id": torta["id"], "quantity": 1},
+        {"product_id": torta["id"], "quantity": 2, "weight_kg": "1.000"},
+        {"product_id": torta["id"], "quantity": 1, "weight_kg": "1.2345"},
+        {"product_id": torta["id"], "quantity": 1, "weight_kg": "1.000", "amount": "12000.00"},
+        {"product_id": palito["id"], "quantity": 1, "amount": "1000.00"},
+        {"product_id": palito["id"], "quantity": 1, "weight_kg": "1.000"},
+    ]
+    for position, detail in enumerate(invalid_details):
+        response = client.post(
+            "/api/ventas",
+            headers={"Idempotency-Key": f"invalid-mode-{position}"},
+            json={"payment_method": "cash", "details": [detail]},
+        )
+        assert response.status_code == 422, response.text
+
+
+def test_weight_sale_rounds_to_cents(client: TestClient, login) -> None:
+    login()
+    torta = create_weighted_product(client)
+    sold = client.post(
+        "/api/ventas",
+        headers={"Idempotency-Key": "round-to-cent"},
+        json={
+            "payment_method": "qr",
+            "details": [{"product_id": torta["id"], "quantity": 1, "weight_kg": "0.333"}],
+        },
+    )
+    assert sold.status_code == 201
+    assert sold.json()["total"] == "3996.00"
