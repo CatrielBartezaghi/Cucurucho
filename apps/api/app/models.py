@@ -57,6 +57,7 @@ class Product(Base):
     __tablename__ = "products"
     __table_args__ = (
         CheckConstraint("price > 0", name="ck_products_positive_price"),
+        CheckConstraint("pricing_type IN ('unit','weight')", name="ck_products_pricing_type"),
         UniqueConstraint("normalized_name", name="uq_products_normalized_name"),
     )
 
@@ -67,6 +68,7 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(150))
     normalized_name: Mapped[str] = mapped_column(String(150))
     price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    pricing_type: Mapped[str] = mapped_column(String(10), default="unit", server_default="unit")
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     image_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -106,6 +108,15 @@ class SaleDetail(Base):
     __table_args__ = (
         CheckConstraint("quantity > 0", name="ck_sale_details_positive_quantity"),
         CheckConstraint("unit_price > 0", name="ck_sale_details_positive_price"),
+        CheckConstraint("pricing_type IN ('unit','weight')", name="ck_sale_details_pricing_type"),
+        CheckConstraint("line_total > 0", name="ck_sale_details_positive_line_total"),
+        CheckConstraint("weight_kg IS NULL OR weight_kg > 0", name="ck_sale_details_positive_weight"),
+        CheckConstraint(
+            "(pricing_type = 'unit' AND weight_kg IS NULL AND entry_method IS NULL) OR "
+            "(pricing_type = 'weight' AND weight_kg IS NOT NULL AND "
+            "entry_method IN ('weight','amount') AND quantity = 1)",
+            name="ck_sale_details_pricing_consistency",
+        ),
         UniqueConstraint("sale_id", "position", name="uq_sale_details_position"),
     )
 
@@ -114,6 +125,10 @@ class SaleDetail(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("products.id", ondelete="RESTRICT"))
     product_name: Mapped[str] = mapped_column(String(150))
     unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    pricing_type: Mapped[str] = mapped_column(String(10), default="unit", server_default="unit")
+    weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(12, 3), nullable=True)
+    entry_method: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    line_total: Mapped[Decimal] = mapped_column(Numeric(14, 2))
     quantity: Mapped[int] = mapped_column(Integer)
     position: Mapped[int] = mapped_column(Integer)
     sale: Mapped[Sale] = relationship(back_populates="details")
