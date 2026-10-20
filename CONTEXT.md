@@ -5,7 +5,7 @@ Este contexto describe el lenguaje de Cucurucho, la aplicación de registro de v
 ## Language
 
 **Producto**:
-Una presentación vendible con nombre único y precio positivo propios, como ¼ kg, ½ kg, cucurucho, torta helada o gaseosa. La unicidad del nombre ignora espacios exteriores y no distingue mayúsculas, minúsculas ni acentos; el producto no identifica sabores, ingredientes ni el peso efectivamente servido.
+Una presentación vendible con nombre único, precio positivo y forma de venta propia: por unidad o por kilogramo. Ejemplos: ¼ kg, ½ kg, cucurucho, torta helada o gaseosa. El precio de un Producto por kilogramo es su tarifa por kilo. La unicidad del nombre ignora espacios exteriores y no distingue mayúsculas, minúsculas ni acentos; el producto no identifica sabores ni ingredientes.
 _Avoid_: Sabor, ingrediente
 
 **Producto inactivo**:
@@ -25,11 +25,11 @@ La compra completa y confirmada realizada por una persona. Contiene uno o más d
 _Avoid_: Pedido, operación
 
 **Cantidad**:
-El número entero y positivo de unidades de un producto incluido en una venta. El peso indicado en el nombre de un producto no convierte su cantidad en fraccionaria.
-_Avoid_: Peso servido, cantidad decimal
+El número entero y positivo de unidades de un Producto vendido por unidad. Cada Producto vendido por kilogramo ocupa un detalle separado con cantidad 1 y un peso positivo con precisión de gramos.
+_Avoid_: Usar cantidades decimales para unidades
 
 **Detalle de venta**:
-El nombre y precio unitario de un producto, junto con la cantidad vendida, conservados tal como eran al confirmar la venta. Los cambios posteriores del producto no modifican este detalle.
+Conserva el nombre, tarifa y forma de venta del Producto, su cantidad, el peso cuando corresponde, el modo de ingreso (peso o importe) y el importe efectivamente cobrado. Los cambios posteriores del Producto no modifican estos datos.
 _Avoid_: Producto actual, precio actual
 
 **Medio de pago**:
@@ -37,7 +37,7 @@ La forma única mediante la cual se abona una venta: efectivo, transferencia, ta
 _Avoid_: Pago parcial, pago dividido
 
 **Precio de venta**:
-El precio unitario efectivamente cobrado por un producto dentro de una venta, tomado del precio vigente del producto y no modificable al registrar la compra. Permanece inalterado aunque posteriormente cambie el precio del producto.
+Tarifa histórica por unidad o por kilogramo, tomada del Producto vigente al confirmar la Venta. No es editable directamente; para los Productos por kilogramo puede ingresarse el peso o el importe final. La tarifa histórica permanece inalterada cuando cambia el Producto.
 _Avoid_: Precio actual
 
 **Importe**:
@@ -45,7 +45,7 @@ Una cantidad expresada exclusivamente en pesos argentinos, con hasta dos decimal
 _Avoid_: Monto en dólares, importe convertido
 
 **Total de venta**:
-La suma del precio de venta multiplicado por la cantidad de cada detalle de una venta. No incluye descuentos, recargos, impuestos separados ni redondeos adicionales.
+La suma de los importes de los detalles de una Venta. Para unidades se multiplica la tarifa por la cantidad; para kilos ingresados se multiplica la tarifa por el peso y se redondea a centavos; si se ingresa el importe final se guarda exactamente ese importe y se estima el peso a tres decimales. No hay descuentos ni recargos.
 _Avoid_: Subtotal, total estimado
 
 **Anulación**:
