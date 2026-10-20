@@ -11,7 +11,7 @@ const sale = {
   sale_day: "2026-08-01",
   observation: null,
   annulment: null,
-  details: [{ id: "d1", product_id: "p1", product_name: "Palito", unit_price: "1000.00", quantity: 1, position: 0 }],
+  details: [{ id: "d1", product_id: "p1", product_name: "Palito", unit_price: "1000.00", pricing_type: "unit", weight_kg: null, entry_method: null, line_total: "1000.00", quantity: 1, position: 0 }],
 };
 
 it("cancela una Anulación antes de llamar al contrato HTTP", async () => {
