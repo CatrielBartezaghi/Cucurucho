@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api, multiplyMoney, pesos, Sale, SalesByDay } from "@/lib/api";
+import { api, pesos, Sale, SalesByDay } from "@/lib/api";
 import { paymentMethodLabels } from "@/lib/payment-methods";
 
 interface Props {
@@ -85,7 +85,12 @@ export function SalesHistory({ day, history, loading = false, onDayChange, onRef
                 <div><strong>{pesos(sale.total)}</strong><span>{sale.annulment ? "Anulada" : "Confirmada"}</span></div>
               </summary>
               <div className="sale-details">
-                <ul>{sale.details.map((detail) => <li key={detail.id}><span>{detail.quantity} × {detail.product_name}<small>{pesos(detail.unit_price)} c/u</small></span><strong>{pesos(multiplyMoney(detail.unit_price, detail.quantity))}</strong></li>)}</ul>
+                <ul>{sale.details.map((detail) => <li key={detail.id}><span>
+                      {detail.pricing_type === "weight"
+                        ? `${detail.entry_method === "amount" ? "≈ " : ""}${detail.weight_kg} kg × ${detail.product_name}`
+                        : `${detail.quantity} × ${detail.product_name}`}
+                      <small>{pesos(detail.unit_price)} {detail.pricing_type === "weight" ? "/ kg" : "c/u"}</small>
+                    </span><strong>{pesos(detail.line_total)}</strong></li>)}</ul>
                 {sale.observation && <p><strong>Observación:</strong> {sale.observation}</p>}
                 {sale.annulment && <p className="annulment"><strong>Motivo de anulación:</strong> {sale.annulment.reason}</p>}
                 <div className="row-actions">
