@@ -170,7 +170,11 @@ class Sales:
 
     @staticmethod
     def _fingerprint(data: SaleInput) -> str:
-        canonical = json.dumps(data.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
+        canonical = json.dumps(
+            data.model_dump(mode="json", exclude_none=True),
+            sort_keys=True,
+            separators=(",", ":"),
+        )
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     @staticmethod
