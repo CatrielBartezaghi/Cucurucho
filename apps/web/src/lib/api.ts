@@ -68,20 +68,22 @@ export const api = {
     name: ProductInput["name"],
     price: ProductInput["price"],
     categoryId: string,
+    pricingType: ProductInput["pricing_type"] = "unit",
   ) =>
     request<Product>("/api/productos", {
       method: "POST",
-      body: JSON.stringify({ name, price, category_id: categoryId }),
+      body: JSON.stringify({ name, price, category_id: categoryId, pricing_type: pricingType }),
     }),
   updateProduct: (
     id: string,
     name: ProductInput["name"],
     price: ProductInput["price"],
     categoryId: string,
+    pricingType: ProductInput["pricing_type"] = "unit",
   ) =>
     request<Product>(`/api/productos/${id}`, {
       method: "PUT",
-      body: JSON.stringify({ name, price, category_id: categoryId }),
+      body: JSON.stringify({ name, price, category_id: categoryId, pricing_type: pricingType }),
     }),
   setProductActive: (id: string, active: boolean) =>
     request<Product>(`/api/productos/${id}/${active ? "activar" : "inactivar"}`, {
