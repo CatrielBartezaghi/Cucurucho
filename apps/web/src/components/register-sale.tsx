@@ -178,7 +178,7 @@ export function RegisterSale({ products, categories, onConfirmed, onError }: Pro
           {cart.length === 0 ? <p className="empty">Agregá un Producto para comenzar.</p> : (
             <ol className="cart-lines">
               {cart.map((line) => (
-                <li key={line.localId}>
+                <li className={line.product.pricing_type === "weight" ? "weighted-sale" : ""} key={line.localId}>
                   <div><strong>{line.product.name}</strong><small>{pesos(line.product.price)} {line.product.pricing_type === "weight" ? "/ kg" : "c/u"}</small></div>
                   {line.product.pricing_type === "weight" ? (
                     <div className="weighted-inputs">
