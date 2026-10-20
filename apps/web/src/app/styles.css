@@ -92,3 +92,14 @@ legend { margin-bottom:.6rem; font-weight:800; }
 .annulment { padding:.75rem; color:#772b2b; background:#f6deda; border-radius:10px; }
 @media (max-width:800px) { .sale-layout { grid-template-columns:1fr; } .cart { position:static; } .create-product { grid-template-columns:1fr 1fr; } .create-product button { grid-column:1/3; } }
 @media (max-width:560px) { .topbar { align-items:flex-start; } .user-actions span { display:none; } .tabs { overflow:auto; } .tabs button { white-space:nowrap; } .section-heading { align-items:flex-start; } .create-product { grid-template-columns:1fr; } .create-product button { grid-column:auto; } .picker-grid,.product-grid { grid-template-columns:1fr; } .payment-grid { grid-template-columns:1fr; } }
+
+/* La carga por peso permite escribir indistintamente gramos o importe. */
+.weighted-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(90px, 1fr));
+  gap: 0.5rem;
+  flex: 1;
+}
+.weighted-inputs label { font-size: 0.8rem; display: grid; gap: 0.2rem; }
+.weighted-inputs input { width: 100%; min-width: 0; padding: 0.5rem; }
+.weighted-inputs small { grid-column: 1 / -1; }
