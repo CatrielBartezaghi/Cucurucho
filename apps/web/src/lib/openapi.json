@@ -179,6 +179,11 @@
               }
             ],
             "title": "Price"
+          },
+          "pricing_type": {
+            "default": "unit",
+            "title": "Pricing Type",
+            "type": "string"
           }
         },
         "required": [
@@ -221,12 +226,17 @@
           "price": {
             "title": "Price",
             "type": "string"
+          },
+          "pricing_type": {
+            "title": "Pricing Type",
+            "type": "string"
           }
         },
         "required": [
           "id",
           "name",
           "price",
+          "pricing_type",
           "active",
           "image_url",
           "category"
@@ -236,15 +246,47 @@
       },
       "SaleDetailInput": {
         "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Amount"
+          },
           "product_id": {
             "format": "uuid",
             "title": "Product Id",
             "type": "string"
           },
           "quantity": {
-            "exclusiveMinimum": 0.0,
+            "exclusiveMinimum": 0,
             "title": "Quantity",
             "type": "integer"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Weight Kg"
           }
         },
         "required": [
@@ -256,14 +298,33 @@
       },
       "SaleDetailOutput": {
         "properties": {
+          "entry_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Method"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
           },
+          "line_total": {
+            "title": "Line Total",
+            "type": "string"
+          },
           "position": {
             "title": "Position",
             "type": "integer"
+          },
+          "pricing_type": {
+            "title": "Pricing Type",
+            "type": "string"
           },
           "product_id": {
             "format": "uuid",
@@ -281,6 +342,17 @@
           "unit_price": {
             "title": "Unit Price",
             "type": "string"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
           }
         },
         "required": [
@@ -288,6 +360,10 @@
           "product_id",
           "product_name",
           "unit_price",
+          "pricing_type",
+          "weight_kg",
+          "entry_method",
+          "line_total",
           "quantity",
           "position"
         ],
