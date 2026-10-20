@@ -53,6 +53,7 @@ class ProductCatalog:
                 name=data.name,
                 normalized_name=normalized_name(data.name),
                 price=data.price,
+                pricing_type=data.pricing_type,
                 category=category,
                 active=True,
                 created_at=now,
@@ -66,6 +67,7 @@ class ProductCatalog:
         product.name = data.name
         product.normalized_name = normalized_name(data.name)
         product.price = data.price
+        product.pricing_type = data.pricing_type
         product.category = category
         product.updated_at = datetime.now(UTC)
         return self._persist(db, product)
