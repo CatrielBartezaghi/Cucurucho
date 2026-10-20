@@ -347,6 +347,11 @@ export interface components {
             name: string;
             /** Price */
             price: number | string;
+            /**
+             * Pricing Type
+             * @default unit
+             */
+            pricing_type?: string;
         };
         /** ProductOutput */
         ProductOutput: {
@@ -364,9 +369,13 @@ export interface components {
             name: string;
             /** Price */
             price: string;
+            /** Pricing Type */
+            pricing_type: string;
         };
         /** SaleDetailInput */
         SaleDetailInput: {
+            /** Amount */
+            amount?: number | string | null;
             /**
              * Product Id
              * Format: uuid
@@ -374,14 +383,20 @@ export interface components {
             product_id: string;
             /** Quantity */
             quantity: number;
+            /** Weight Kg */
+            weight_kg?: number | string | null;
         };
         /** SaleDetailOutput */
         SaleDetailOutput: {
+            /** Entry Method */
+            entry_method: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Line Total */
+            line_total: string;
             /** Position */
             position: number;
             /**
@@ -391,10 +406,14 @@ export interface components {
             product_id: string;
             /** Product Name */
             product_name: string;
+            /** Pricing Type */
+            pricing_type: string;
             /** Quantity */
             quantity: number;
             /** Unit Price */
             unit_price: string;
+            /** Weight Kg */
+            weight_kg: string | null;
         };
         /** SaleInput */
         SaleInput: {
