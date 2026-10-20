@@ -97,3 +97,22 @@ it("muestra progreso sin combinar el nuevo Día de venta con datos anteriores", 
   expect(screen.getByText("Consultando Ventas…")).toBeInTheDocument();
   expect(screen.queryByText("Total vendido")).not.toBeInTheDocument();
 });
+
+
+it("muestra kilos aproximados y conserva el importe final cobrado", async () => {
+  const weighted = {
+    ...sale,
+    total: "16000.00",
+    details: [{
+      id: "d2", product_id: "t1", product_name: "Torta", unit_price: "12000.00",
+      pricing_type: "weight", weight_kg: "1.333", entry_method: "amount",
+      line_total: "16000.00", quantity: 1, position: 0,
+    }],
+  };
+  const user = userEvent.setup();
+  render(<SalesHistory day="2026-08-01" history={{ day: "2026-08-01", total_sold: "16000.00", sales: [weighted] }} onDayChange={vi.fn()} onRefresh={vi.fn()} onError={vi.fn()} />);
+  await user.click(screen.getByText("Efectivo").closest("summary")!);
+  expect(screen.getByText("≈ 1.333 kg × Torta")).toBeInTheDocument();
+  expect(screen.getByText("$ 12.000,00 / kg")).toBeInTheDocument();
+  expect(screen.getByText("$ 16.000,00")).toBeInTheDocument();
+});
