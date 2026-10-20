@@ -110,7 +110,9 @@ class SaleDetail(Base):
         CheckConstraint("unit_price > 0", name="ck_sale_details_positive_price"),
         CheckConstraint("pricing_type IN ('unit','weight')", name="ck_sale_details_pricing_type"),
         CheckConstraint("line_total > 0", name="ck_sale_details_positive_line_total"),
-        CheckConstraint("weight_kg IS NULL OR weight_kg > 0", name="ck_sale_details_positive_weight"),
+        CheckConstraint(
+            "weight_kg IS NULL OR weight_kg > 0", name="ck_sale_details_positive_weight"
+        ),
         CheckConstraint(
             "(pricing_type = 'unit' AND weight_kg IS NULL AND entry_method IS NULL) OR "
             "(pricing_type = 'weight' AND weight_kg IS NOT NULL AND "
