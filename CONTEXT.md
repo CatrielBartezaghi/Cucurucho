@@ -71,3 +71,25 @@ _Avoid_: Día UTC, jornada de caja
 **Momento de venta**:
 El instante asignado por el sistema cuando se confirma una venta. No puede elegirse ni modificarse manualmente.
 _Avoid_: Fecha de carga, fecha retroactiva
+
+
+
+## Costos y rentabilidad (desde la versión 0004)
+
+**Insumo**:
+Bien adquirido para elaborar o entregar un Producto. Se identifica por nombre único y unidad de medida (kg o unidad). Se puede inactivar sin borrar su historial.
+
+**Compra de insumo**:
+Registro de cantidad, importe total y costo unitario calculado en el momento de la compra. No se modifica ni elimina. La última compra registrada actualiza el costo unitario vigente del Insumo; no se calcula costo promedio ponderado del inventario ni stock físico en esta etapa.
+
+**Receta de producto**:
+Asociación entre un Producto y uno o varios Insumos, con cantidad de consumo. Para Productos vendidos por unidad, el consumo escala por la cantidad vendida. Para Productos vendidos por peso, el consumo «variable» escala por kg facturado, mientras el consumo «fijo» aplica una vez por detalle (por ejemplo el envase). La receta editable se aplica solo a ventas futuras.
+
+**Costo histórico de detalle**:
+Al confirmar una Venta se congela el costo estimado de insumos a partir de la receta y los últimos costos unitarios registrados. Si falta una receta o el costo vigente de cualquier insumo, el costo del detalle es desconocido (`NULL`), nunca cero. Modificar compras, precios o recetas no recalcula ventas anteriores. Las ventas históricas anteriores a esta funcionalidad no tienen costo.
+
+**Ganancia bruta calculable**:
+Ingresos de los detalles con costo histórico conocido menos esos costos. El margen se divide solo por los ingresos de esos detalles, y se muestran aparte los ingresos pendientes de costear. Las anulaciones excluyen por completo ingresos y costos. No representa utilidad neta: no descuenta servicios, alquiler, sueldos, impuestos, comisiones, desperdicios ni otros gastos generales.
+
+**Stock**:
+Fuera del alcance actual. Las compras quedan registradas para futura gestión de existencias, pero las ventas no descuentan inventario y no se ofrecen saldos físicos engañosos.

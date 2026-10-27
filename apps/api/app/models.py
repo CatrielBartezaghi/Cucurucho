@@ -133,4 +133,63 @@ class SaleDetail(Base):
     line_total: Mapped[Decimal] = mapped_column(Numeric(14, 2))
     quantity: Mapped[int] = mapped_column(Integer)
     position: Mapped[int] = mapped_column(Integer)
+    cost_total: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
     sale: Mapped[Sale] = relationship(back_populates="details")
+
+
+
+class Supply(Base):
+    __tablename__ = "supplies"
+    __table_args__ = (
+        UniqueConstraint("normalized_name", name="uq_supplies_normalized_name"),
+        CheckConstraint("unit IN ('kg','unit')", name="ck_supplies_unit"),
+        CheckConstraint(
+            "current_unit_cost IS NULL OR current_unit_cost >= 0", name="ck_supplies_cost"
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(150))
+    normalized_name: Mapped[str] = mapped_column(String(150))
+    unit: Mapped[str] = mapped_column(String(10))
+    current_unit_cost: Mapped[Decimal | None] = mapped_column(Numeric(14, 4), nullable=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class SupplyPurchase(Base):
+    __tablename__ = "supply_purchases"
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="ck_supply_purchases_quantity"),
+        CheckConstraint("total_cost >= 0", name="ck_supply_purchases_total_cost"),
+        CheckConstraint("unit_cost >= 0", name="ck_supply_purchases_unit_cost"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    supply_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("supplies.id", ondelete="RESTRICT"), index=True
+    )
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    total_cost: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    unit_cost: Mapped[Decimal] = mapped_column(Numeric(14, 4))
+    purchased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    supply: Mapped[Supply] = relationship()
+
+
+class ProductSupply(Base):
+    __tablename__ = "product_supplies"
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="ck_product_supplies_quantity"),
+        CheckConstraint("mode IN ('variable','fixed')", name="ck_product_supplies_mode"),
+    )
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), primary_key=True
+    )
+    supply_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("supplies.id", ondelete="RESTRICT"), primary_key=True
+    )
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    mode: Mapped[str] = mapped_column(String(10), default="variable")
+    supply: Mapped[Supply] = relationship()

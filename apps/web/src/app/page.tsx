@@ -6,8 +6,10 @@ import { ApiError, Category, SessionExpiredError, api, buenosAiresToday, Product
 import { Catalog } from "@/components/catalog";
 import { RegisterSale } from "@/components/register-sale";
 import { SalesHistory } from "@/components/sales-history";
+import { CostsPanel } from "@/components/costs-panel";
+import { Profitability } from "@/components/profitability";
 
-type Section = "sale" | "catalog" | "history";
+type Section = "sale" | "catalog" | "history" | "costs" | "profitability";
 
 export default function HomePage() {
   const router = useRouter();
@@ -103,6 +105,8 @@ export default function HomePage() {
         <button aria-current={section === "sale" ? "page" : undefined} onClick={() => { setSection("sale"); loadProducts(false); }}>Nueva venta</button>
         <button aria-current={section === "catalog" ? "page" : undefined} onClick={() => { setSection("catalog"); loadCatalog(); }}>Productos</button>
         <button aria-current={section === "history" ? "page" : undefined} onClick={() => { setSection("history"); loadHistory(); }}>Ventas del día</button>
+        <button aria-current={section === "costs" ? "page" : undefined} onClick={() => { setSection("costs"); loadCatalog(); }}>Insumos y costos</button>
+        <button aria-current={section === "profitability" ? "page" : undefined} onClick={() => setSection("profitability")}>Rentabilidad</button>
       </nav>
 
       {error && <p className="banner error" role="alert">{error}<button onClick={() => setError("")} aria-label="Cerrar error">×</button></p>}
@@ -111,6 +115,8 @@ export default function HomePage() {
         {section === "sale" && <RegisterSale products={products.filter((product) => product.active)} categories={categories} onConfirmed={(sale) => { setDay(sale.sale_day); loadHistory(sale.sale_day); }} onError={handleError} />}
         {section === "catalog" && <Catalog products={products} categories={categories} onRefresh={loadCatalog} onError={handleError} />}
         {section === "history" && <SalesHistory day={day} history={history} loading={historyLoading} onDayChange={(value) => { setDay(value); loadHistory(value); }} onRefresh={() => loadHistory()} onError={handleError} />}
+        {section === "costs" && <CostsPanel products={products} onError={handleError} />}
+        {section === "profitability" && <Profitability onError={handleError} />}
       </main>
     </div>
   );
