@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 from ..errors import ApiError
 from ..models import Product, Sale, SaleDetail
 from ..schemas import SaleInput
+from .costs import Costs
 
 BUENOS_AIRES = ZoneInfo("America/Argentina/Buenos_Aires")
 
@@ -110,6 +111,9 @@ class Sales:
                     line_total=line_total,
                     quantity=requested.quantity,
                     position=position,
+                    cost_total=Costs.calculate_line_cost(
+                        db, product.id, product.pricing_type, requested.quantity, weight_kg
+                    ),
                 )
             )
         db.add(sale)
