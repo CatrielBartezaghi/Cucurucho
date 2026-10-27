@@ -25,11 +25,17 @@ from .schemas import (
     ObservationInput,
     ProductInput,
     ProductOutput,
+    SupplyInput,
+    SupplyUpdate,
+    PurchaseInput,
+    RecipeInput,
     SaleInput,
     SaleOutput,
     SalesByDayOutput,
 )
 from .services.catalog import MAX_IMAGE_BYTES, ProductCatalog
+from .services.costs import Costs
+from .services.profit import report as profitability_report
 from .services.sales import Sales
 from .services.sessions import CurrentUser, Sessions
 from .storage import ImageStorage, UnconfiguredStorage, VercelBlobStorage
@@ -106,6 +112,7 @@ def create_app(
     sessions = Sessions(app_settings)
     catalog = ProductCatalog(storage)
     sales = Sales(clock)
+    costs = Costs()
 
     app = FastAPI(
         title="Cucurucho API",
@@ -325,6 +332,72 @@ def create_app(
         db: Session = Depends(get_db),
     ) -> SaleOutput:
         return sale_output(sales.remove_observation(db, sale_id))
+
+
+    @app.get("/api/insumos")
+    def list_supplies(
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> list[dict[str, object]]:
+        return costs.list_supplies(db)
+
+    @app.post("/api/insumos", status_code=201)
+    def create_supply(
+        payload: SupplyInput,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> dict[str, object]:
+        return costs.create_supply(db, payload)
+
+    @app.put("/api/insumos/{supply_id}")
+    def update_supply(
+        supply_id: uuid.UUID,
+        payload: SupplyUpdate,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> dict[str, object]:
+        return costs.update_supply(db, supply_id, payload)
+
+    @app.get("/api/compras-insumos")
+    def list_purchases(
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> list[dict[str, object]]:
+        return costs.list_purchases(db)
+
+    @app.post("/api/compras-insumos", status_code=201)
+    def create_purchase(
+        payload: PurchaseInput,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> dict[str, object]:
+        return costs.add_purchase(db, payload)
+
+    @app.get("/api/productos/{product_id}/receta")
+    def product_recipe(
+        product_id: uuid.UUID,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> dict[str, object]:
+        return costs.recipe(db, product_id)
+
+    @app.put("/api/productos/{product_id}/receta")
+    def update_recipe(
+        product_id: uuid.UUID,
+        payload: RecipeInput,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> dict[str, object]:
+        return costs.set_recipe(db, product_id, payload)
+
+    @app.get("/api/rentabilidad")
+    def profitability(
+        desde: date,
+        hasta: date,
+        _user: CurrentUser = Depends(authenticated_user),
+        db: Session = Depends(get_db),
+    ) -> dict[str, object]:
+        return profitability_report(db, desde, hasta)
 
     return app
 
