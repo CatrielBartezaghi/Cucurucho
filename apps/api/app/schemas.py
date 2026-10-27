@@ -209,14 +209,24 @@ class PurchaseInput(BaseModel):
     @field_validator("quantity")
     @classmethod
     def valid_quantity(cls, value: Decimal) -> Decimal:
-        if not value.is_finite() or value <= 0 or value >= Decimal("1000000000") or value != value.quantize(Decimal("0.001")):
+        if (
+            not value.is_finite()
+            or value <= 0
+            or value >= Decimal("1000000000")
+            or value != value.quantize(Decimal("0.001"))
+        ):
             raise ValueError("La cantidad debe ser positiva, con hasta tres decimales.")
         return value
 
     @field_validator("total_cost")
     @classmethod
     def valid_total(cls, value: Decimal) -> Decimal:
-        if not value.is_finite() or value < 0 or value >= Decimal("10000000000") or value != value.quantize(Decimal("0.01")):
+        if (
+            not value.is_finite()
+            or value < 0
+            or value >= Decimal("10000000000")
+            or value != value.quantize(Decimal("0.01"))
+        ):
             raise ValueError("El importe debe ser no negativo y tener hasta dos decimales.")
         return value
 
@@ -229,8 +239,15 @@ class RecipeItemInput(BaseModel):
     @field_validator("quantity")
     @classmethod
     def valid_quantity(cls, value: Decimal) -> Decimal:
-        if not value.is_finite() or value <= 0 or value >= Decimal("1000000000") or value != value.quantize(Decimal("0.001")):
-            raise ValueError("La cantidad de la receta debe ser positiva y tener hasta tres decimales.")
+        if (
+            not value.is_finite()
+            or value <= 0
+            or value >= Decimal("1000000000")
+            or value != value.quantize(Decimal("0.001"))
+        ):
+            raise ValueError(
+                "La cantidad de la receta debe ser positiva y tener hasta tres decimales."
+            )
         return value
 
 
