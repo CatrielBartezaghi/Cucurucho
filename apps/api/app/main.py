@@ -27,11 +27,11 @@ from .schemas import (
     ProductOutput,
     PurchaseInput,
     RecipeInput,
-    SupplyInput,
-    SupplyUpdate,
     SaleInput,
     SaleOutput,
     SalesByDayOutput,
+    SupplyInput,
+    SupplyUpdate,
 )
 from .services.catalog import MAX_IMAGE_BYTES, ProductCatalog
 from .services.costs import Costs
