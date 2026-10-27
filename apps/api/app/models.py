@@ -143,7 +143,9 @@ class Supply(Base):
     __table_args__ = (
         UniqueConstraint("normalized_name", name="uq_supplies_normalized_name"),
         CheckConstraint("unit IN ('kg','unit')", name="ck_supplies_unit"),
-        CheckConstraint("current_unit_cost IS NULL OR current_unit_cost >= 0", name="ck_supplies_cost"),
+        CheckConstraint(
+            "current_unit_cost IS NULL OR current_unit_cost >= 0", name="ck_supplies_cost"
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -165,7 +167,9 @@ class SupplyPurchase(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    supply_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("supplies.id", ondelete="RESTRICT"), index=True)
+    supply_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("supplies.id", ondelete="RESTRICT"), index=True
+    )
     quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3))
     total_cost: Mapped[Decimal] = mapped_column(Numeric(14, 2))
     unit_cost: Mapped[Decimal] = mapped_column(Numeric(14, 4))
