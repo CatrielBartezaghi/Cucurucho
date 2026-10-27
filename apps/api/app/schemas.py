@@ -178,3 +178,61 @@ class SalesByDayOutput(BaseModel):
     day: date
     total_sold: str
     sales: list[SaleOutput]
+
+
+
+class SupplyInput(BaseModel):
+    name: str = Field(max_length=150)
+    unit: Literal["kg", "unit"]
+
+    @field_validator("name")
+    @classmethod
+    def valid_name(cls, value: str) -> str:
+        return validate_non_empty_text(value, "El nombre del insumo es obligatorio.")
+
+
+class SupplyUpdate(BaseModel):
+    name: str = Field(max_length=150)
+    active: bool
+
+    @field_validator("name")
+    @classmethod
+    def valid_name(cls, value: str) -> str:
+        return validate_non_empty_text(value, "El nombre del insumo es obligatorio.")
+
+
+class PurchaseInput(BaseModel):
+    supply_id: uuid.UUID
+    quantity: Decimal
+    total_cost: Decimal
+
+    @field_validator("quantity")
+    @classmethod
+    def valid_quantity(cls, value: Decimal) -> Decimal:
+        if not value.is_finite() or value <= 0 or value >= Decimal("1000000000") or value != value.quantize(Decimal("0.001")):
+            raise ValueError("La cantidad debe ser positiva, con hasta tres decimales.")
+        return value
+
+    @field_validator("total_cost")
+    @classmethod
+    def valid_total(cls, value: Decimal) -> Decimal:
+        if not value.is_finite() or value < 0 or value >= Decimal("10000000000") or value != value.quantize(Decimal("0.01")):
+            raise ValueError("El importe debe ser no negativo y tener hasta dos decimales.")
+        return value
+
+
+class RecipeItemInput(BaseModel):
+    supply_id: uuid.UUID
+    quantity: Decimal
+    mode: Literal["variable", "fixed"] = "variable"
+
+    @field_validator("quantity")
+    @classmethod
+    def valid_quantity(cls, value: Decimal) -> Decimal:
+        if not value.is_finite() or value <= 0 or value >= Decimal("1000000000") or value != value.quantize(Decimal("0.001")):
+            raise ValueError("La cantidad de la receta debe ser positiva y tener hasta tres decimales.")
+        return value
+
+
+class RecipeInput(BaseModel):
+    items: list[RecipeItemInput] = Field(max_length=200)
