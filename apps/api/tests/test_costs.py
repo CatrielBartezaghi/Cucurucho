@@ -104,7 +104,9 @@ def test_weighted_recipe_variable_and_fixed(client: TestClient, login) -> None:
     assert report["gross_profit"] == "9800.00"
 
 
-def test_incomplete_costs_invalid_input_and_auth(client: TestClient, login, product_factory) -> None:
+def test_incomplete_costs_invalid_input_and_auth(
+    client: TestClient, login, product_factory
+) -> None:
     assert client.get("/api/insumos").status_code == 401
     login()
     product = product_factory("Vaso", "2000.00")
