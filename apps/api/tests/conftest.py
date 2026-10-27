@@ -68,7 +68,8 @@ def session_factory(settings: Settings) -> Iterator[sessionmaker[Session]]:
     with engine.begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE sale_details, sales, product_supplies, supply_purchases, supplies, browser_sessions, products, users "
+                "TRUNCATE sale_details, sales, product_supplies, supply_purchases, "
+                "supplies, browser_sessions, products, users "
                 "RESTART IDENTITY CASCADE"
             )
         )
