@@ -25,6 +25,31 @@ export type SaleDetail = Schemas["SaleDetailOutput"];
 export type Sale = Schemas["SaleOutput"];
 export type SalesByDay = Schemas["SalesByDayOutput"];
 
+export type Supply = {
+  id: string; name: string; unit: "kg" | "unit";
+  current_unit_cost: string | null; active: boolean;
+};
+export type SupplyPurchase = {
+  id: string; supply_id: string; supply_name: string;
+  quantity: string; total_cost: string; unit_cost: string; purchased_at: string;
+};
+export type RecipeItem = {
+  supply_id: string; supply_name: string; unit: "kg" | "unit";
+  quantity: string; mode: "variable" | "fixed"; unit_cost: string | null;
+};
+export type Recipe = { product_id: string; items: RecipeItem[] };
+export type RecipeChange = { supply_id: string; quantity: string; mode: "variable" | "fixed" };
+export type ProfitItem = {
+  product_id: string; name: string; revenue: string; known_revenue: string;
+  known_cost: string; gross_profit: string; gross_margin_pct: string | null;
+  missing_lines: number; lines: number;
+};
+export type ProfitReport = {
+  from: string; to: string; total_revenue: string; known_revenue: string;
+  unknown_revenue: string; known_cost: string; gross_profit: string;
+  gross_margin_pct: string | null; missing_lines: number; products: ProfitItem[];
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
@@ -96,6 +121,25 @@ export const api = {
   },
   removeProductImage: (id: string) =>
     request<Product>(`/api/productos/${id}/imagen`, { method: "DELETE" }),
+
+  supplies: () => request<Supply[]>("/api/insumos"),
+  createSupply: (name: string, unit: "kg" | "unit") =>
+    request<Supply>("/api/insumos", { method: "POST", body: JSON.stringify({ name, unit }) }),
+  updateSupply: (id: string, name: string, active: boolean) =>
+    request<Supply>(`/api/insumos/${id}`, { method: "PUT", body: JSON.stringify({ name, active }) }),
+  purchases: () => request<SupplyPurchase[]>("/api/compras-insumos"),
+  createPurchase: (supply_id: string, quantity: string, total_cost: string) =>
+    request<SupplyPurchase>("/api/compras-insumos", {
+      method: "POST", body: JSON.stringify({ supply_id, quantity, total_cost }),
+    }),
+  recipe: (productId: string) =>
+    request<Recipe>(`/api/productos/${productId}/receta`),
+  saveRecipe: (productId: string, items: RecipeChange[]) =>
+    request<Recipe>(`/api/productos/${productId}/receta`, {
+      method: "PUT", body: JSON.stringify({ items }),
+    }),
+  profitability: (from: string, to: string) =>
+    request<ProfitReport>(`/api/rentabilidad?desde=${encodeURIComponent(from)}&hasta=${encodeURIComponent(to)}`),
   confirmSale: (
     idempotencyKey: string,
     paymentMethod: PaymentMethod,
