@@ -181,7 +181,8 @@ class Costs:
             # En productos por kg, variable escala con peso y fijo es por detalle.
             # En productos por unidad, cada insumo escala con la cantidad vendida.
             factor = (
-                weight_kg if pricing_type == "weight" and item.mode == "variable" and weight_kg is not None
+                weight_kg
+                if pricing_type == "weight" and item.mode == "variable" and weight_kg is not None
                 else Decimal("1") if pricing_type == "weight"
                 else Decimal(quantity)
             )
