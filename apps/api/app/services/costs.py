@@ -61,7 +61,9 @@ class Costs:
             raise ApiError(409, "supply_conflict", "Ya existe un insumo con ese nombre.") from exc
         return supply_output(supply)
 
-    def update_supply(self, db: Session, supply_id: uuid.UUID, data: SupplyUpdate) -> dict[str, object]:
+    def update_supply(
+        self, db: Session, supply_id: uuid.UUID, data: SupplyUpdate
+    ) -> dict[str, object]:
         supply = self.get_supply(db, supply_id, lock=True)
         supply.name = data.name
         supply.normalized_name = normalized_name(data.name)
@@ -123,7 +125,9 @@ class Costs:
             for item in items
         ]}
 
-    def set_recipe(self, db: Session, product_id: uuid.UUID, data: RecipeInput) -> dict[str, object]:
+    def set_recipe(
+        self, db: Session, product_id: uuid.UUID, data: RecipeInput
+    ) -> dict[str, object]:
         self.get_product(db, product_id, lock=True)
         supply_ids = [item.supply_id for item in data.items]
         if len(set(supply_ids)) != len(supply_ids):
@@ -133,9 +137,14 @@ class Costs:
                 select(Supply).where(Supply.id.in_(supply_ids))
             )
         }
-        if any(supply_id not in supplies or not supplies[supply_id].active for supply_id in supply_ids):
+        if any(
+            supply_id not in supplies or not supplies[supply_id].active
+            for supply_id in supply_ids
+        ):
             raise ApiError(422, "unknown_supply", "Revisá los insumos seleccionados.")
-        for previous in db.scalars(select(ProductSupply).where(ProductSupply.product_id == product_id)):
+        for previous in db.scalars(
+            select(ProductSupply).where(ProductSupply.product_id == product_id)
+        ):
             db.delete(previous)
         db.flush()
         for item in data.items:
